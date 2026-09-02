@@ -1,0 +1,59 @@
+import Foundation
+import Observation
+
+@Observable
+@MainActor
+final class WorkspaceModel {
+    var tracks: [AudioTrack] = []
+    var selectedTrackID: AudioTrack.ID?
+
+    private let analysisService = TrackAnalysisService()
+
+    var selectedTrack: AudioTrack? {
+        tracks.first { $0.id == selectedTrackID }
+    }
+
+    func importTracks(from urls: [URL]) {
+        var existingPaths = Set(
+                tracks.map { $0.url.resolvingSymlinksInPath().standardizedFileURL.path })
+        let newURLs = urls.filter { url in
+            guard url.isFileURL else { return false }
+            let path = url.resolvingSymlinksInPath().standardizedFileURL.path
+            guard existingPaths.insert(path).inserted else { return false }
+            return true
+        }
+        guard !newURLs.isEmpty else { return }
+
+        let newTracks = newURLs.map { AudioTrack(url: $0) }
+        tracks.append(contentsOf: newTracks)
+        if selectedTrackID == nil {
+            selectedTrackID = newTracks.first?.id
+        }
+
+        for track in newTracks {
+            analyze(trackID: track.id)
+        }
+    }
+
+    private func analyze(trackID: AudioTrack.ID) {
+        guard let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
+        let url = tracks[index].url
+        tracks[index].analysisStatus = .analyzing
+
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                let result = try await analysisService.analyze(url: url)
+                guard let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
+                tracks[index].analysis = result
+                tracks[index].analysisStatus = .completed
+            } catch is CancellationError {
+                guard let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
+                tracks[index].analysisStatus = .queued
+            } catch {
+                guard let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
+                tracks[index].analysisStatus = .failed(error.localizedDescription)
+            }
+        }
+    }
+}
