@@ -79,13 +79,6 @@ struct TrackListView: View {
             if let trackID = selectedIDs.first,
                let track = tracks.first(where: { $0.id == trackID }) {
                 Section {
-                    Button(role: .destructive) {
-                        onRemove(trackID)
-                    } label: {
-                        Label("Remove", systemImage: "xmark")
-                    }
-                }
-                Section {
                     Menu("Modificar BPM") {
                         ForEach(BPMAdjustment.allCases) { adjustment in
                             Button(adjustment.menuTitle(for: track.bpmValue)) {
@@ -102,6 +95,13 @@ struct TrackListView: View {
                         Label("Save values to metadata", systemImage: "square.and.arrow.down")
                     }
                     .disabled(track.analysisStatus != .completed || track.analysis?.hasDetectedBPM != true)
+                }
+                Section {
+                    Button(role: .destructive) {
+                        onRemove(trackID)
+                    } label: {
+                        Label("Remove", systemImage: "trash")
+                    }
                 }
             }
         }
