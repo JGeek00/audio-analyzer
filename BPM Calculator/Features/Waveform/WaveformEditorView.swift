@@ -6,6 +6,8 @@ struct WaveformEditorView: View {
     let player: AVAudioPlayer?
     let isPlaying: Bool
     let dimPlayed: Bool
+    let showBeatMarkers: Bool
+    let beatPositions: [Double]
     @Binding var zoom: Double
     let onSeek: (Double) -> Void
 
@@ -18,6 +20,7 @@ struct WaveformEditorView: View {
                     peaks: waveform,
                     dimPlayed: dimPlayed,
                     amplitudeScale: maximumRMS,
+                    beatPositions: showBeatMarkers ? beatPositions : [],
                     visibleRange: zoomedRange(for: progress),
                     progress: progress,
                     accessibilityLabel: "Zoomed waveform",
@@ -32,6 +35,7 @@ struct WaveformEditorView: View {
                     peaks: waveform,
                     dimPlayed: dimPlayed,
                     amplitudeScale: maximumRMS,
+                    beatPositions: [],
                     visibleRange: 0...1,
                     progress: progress,
                     accessibilityLabel: "Track overview",

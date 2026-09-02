@@ -13,7 +13,8 @@ struct WaveformView: View {
     @State private var isLoading = false
     @State private var loadError: String?
     @State private var zoom = 32.0
-    @AppStorage(AppStorageKeys.waveformDimming) private var waveformDimming = WaveformDimming.listened.rawValue
+    @AppStorage(AppStorageKeys.waveformDimming) private var waveformDimming = AppConfiguration.defaultWaveformDimming.rawValue
+    @AppStorage(AppStorageKeys.showBeatMarkers) private var showBeatMarkers = AppConfiguration.defaultShowBeatMarkers
 
     private let progressTimer = Timer.publish(every: 1.0 / 30.0, on: .main, in: .common).autoconnect()
 
@@ -68,6 +69,8 @@ struct WaveformView: View {
                         player: player,
                         isPlaying: isPlaying,
                         dimPlayed: shouldDimPlayed,
+                        showBeatMarkers: showBeatMarkers,
+                        beatPositions: beatPositions(for: track),
                         zoom: $zoom,
                         onSeek: seek(to:)
                     )
@@ -135,7 +138,20 @@ struct WaveformView: View {
     }
 
     private var shouldDimPlayed: Bool {
-        (WaveformDimming(rawValue: waveformDimming) ?? .listened).dimsPlayed
+        (WaveformDimming(rawValue: waveformDimming) ?? AppConfiguration.defaultWaveformDimming).dimsPlayed
+    }
+
+    private func beatPositions(for track: AudioTrack) -> [Double] {
+        guard let player,
+              player.duration > 0,
+              let analysis = track.analysis,
+              analysis.sampleRate > 0 else { return [] }
+
+        return analysis.rawBeatFrames.compactMap { frame in
+            let position = frame / analysis.sampleRate / player.duration
+            guard position.isFinite, position >= 0, position <= 1 else { return nil }
+            return position
+        }
     }
 
     private func unloadPlayer() {

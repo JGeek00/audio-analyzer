@@ -6,6 +6,7 @@ The application is organized by responsibility:
 BPM Calculator/
 ├── App/                    # App composition, window scenes, and shared state
 │   ├── BPMCalculatorApp.swift       # Root app and scene declarations
+│   ├── AppConfiguration.swift        # Application defaults
 │   ├── MainWindowScene.swift        # Main window and app commands
 │   ├── MainWindowAccessor.swift     # AppKit window access from SwiftUI
 │   ├── MainWindowDelegate.swift      # Close-warning handling
@@ -24,7 +25,7 @@ BPM Calculator/
 ├── Features/
 │   ├── Workspace/          # Main window layout and file import
 │   ├── TrackList/          # Imported track library and selection
-│   └── Waveform/           # Selected-track analysis and waveform area
+│   └── Waveform/           # Selected-track analysis, beats, and waveform area
 ├── Services/
 │   ├── Audio/              # macOS audio decoding
 │   └── Analysis/           # Analysis service, bridge, and BPM core
@@ -36,7 +37,7 @@ BPM Calculator/
 
 `App` composes the application, owns the workspace state, and configures the main window. `MainWindowScene` contains the main window scene and its commands, while `MainWindowDelegate` and `MainWindowAccessor` keep AppKit window behavior separate from scene composition. `Views` contains app-level SwiftUI views such as the settings screen. `Features` receive state and models; they do not know about decoding or DSP. `Models` do not depend on SwiftUI. Audio decoding and BPM analysis live in `Services` and are consumed by the workspace model through concrete operations.
 
-`AppTheme` defines the three supported appearance modes (`system`, `light`, and `dark`) and maps them to SwiftUI color schemes. `PreferencesView` persists the selected mode and waveform attenuation side with `AppStorage`; `MainWindowScene` observes the theme preference so the main window and settings use the selected theme.
+`AppTheme` defines the three supported appearance modes (`system`, `light`, and `dark`) and maps them to SwiftUI color schemes. `AppConfiguration` owns the default preference values, while `PreferencesView` persists the selected mode, waveform attenuation side, and beat-marker visibility with `AppStorage`; `MainWindowScene` observes the theme preference so the main window and settings use the selected theme.
 
 `TrackListView` exposes BPM transformations in a contextual submenu once a track has finished processing. `WorkspaceModel.adjustBPM(for:using:)` replaces the calculated BPM while preserving the rest of the analysis result, so the table and metadata-saving flow use the adjusted value. The BPM column marks tracks whose calculated value differs from metadata, unless the value was manually adjusted, and marks manual adjustments separately. Both indicators provide explanatory tooltips. `WorkspaceView` provides a clear-tracks action and asks for confirmation when there are unsaved BPM values.
 

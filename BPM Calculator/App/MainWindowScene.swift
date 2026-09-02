@@ -2,10 +2,10 @@ import SwiftUI
 
 struct MainWindowScene: Scene {
     let model: WorkspaceModel
-    @AppStorage(AppStorageKeys.appTheme) private var theme = AppTheme.system.rawValue
+    @AppStorage(AppStorageKeys.appTheme) private var theme = AppConfiguration.defaultTheme.rawValue
 
     private var selectedTheme: AppTheme {
-        AppTheme(rawValue: theme) ?? .system
+        AppTheme(rawValue: theme) ?? AppConfiguration.defaultTheme
     }
 
     var body: some Scene {

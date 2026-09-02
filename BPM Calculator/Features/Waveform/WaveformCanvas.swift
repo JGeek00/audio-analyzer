@@ -4,6 +4,7 @@ struct WaveformCanvas: View {
     let peaks: [WaveformPeak]
     let dimPlayed: Bool
     let amplitudeScale: Float
+    let beatPositions: [Double]
     let visibleRange: ClosedRange<Double>
     let progress: Double
     let accessibilityLabel: String
@@ -76,6 +77,16 @@ struct WaveformCanvas: View {
                         with: .color(peakColor(band: band, count: colorBandCount, dimmed: false)),
                         lineWidth: lineWidth
                     )
+                }
+
+                for beatPosition in beatPositions {
+                    guard beatPosition >= visibleRange.lowerBound,
+                          beatPosition <= visibleRange.upperBound else { continue }
+                    let beatX = CGFloat((beatPosition - visibleRange.lowerBound) / span) * width
+                    var beatLine = Path()
+                    beatLine.move(to: CGPoint(x: beatX, y: 0))
+                    beatLine.addLine(to: CGPoint(x: beatX, y: height))
+                    context.stroke(beatLine, with: .color(.white.opacity(0.34)), lineWidth: 2)
                 }
 
                 if progress >= visibleRange.lowerBound && progress <= visibleRange.upperBound {

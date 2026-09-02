@@ -1,11 +1,12 @@
 import SwiftUI
 
 struct PreferencesView: View {
-    @AppStorage(AppStorageKeys.appTheme) private var theme = AppTheme.system.rawValue
-    @AppStorage(AppStorageKeys.waveformDimming) private var waveformDimming = WaveformDimming.listened.rawValue
+    @AppStorage(AppStorageKeys.appTheme) private var theme = AppConfiguration.defaultTheme.rawValue
+    @AppStorage(AppStorageKeys.waveformDimming) private var waveformDimming = AppConfiguration.defaultWaveformDimming.rawValue
+    @AppStorage(AppStorageKeys.showBeatMarkers) private var showBeatMarkers = AppConfiguration.defaultShowBeatMarkers
 
     private var selectedTheme: AppTheme {
-        AppTheme(rawValue: theme) ?? .system
+        AppTheme(rawValue: theme) ?? AppConfiguration.defaultTheme
     }
 
     var body: some View {
@@ -26,10 +27,12 @@ struct PreferencesView: View {
                     }
                 }
                 .pickerStyle(.radioGroup)
+
+                Toggle("Show beat markers", isOn: $showBeatMarkers)
             }
         }
         .formStyle(.grouped)
-        .frame(width: 500, height: 380)
+        .frame(width: 500, height: 420)
         .preferredColorScheme(selectedTheme.colorScheme)
     }
 }
