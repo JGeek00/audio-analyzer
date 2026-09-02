@@ -1,61 +1,236 @@
-# Architecture
+# Architecture and development guide
 
-The application is organized by responsibility:
+Audio Analyzer is a macOS SwiftUI application with a small Objective-C++
+boundary to a C++ BPM-analysis core. The code is organized by responsibility,
+not by framework layer alone.
 
-```text
-Audio Analyzer/
-├── App/                    # App composition, window scenes, and shared state
-│   ├── BPMCalculatorApp.swift       # Root app and scene declarations
-│   ├── AppConfiguration.swift        # Application defaults
-│   ├── MainWindowScene.swift        # Main window and app commands
-│   ├── MainWindowAccessor.swift     # AppKit window access from SwiftUI
-│   ├── MainWindowDelegate.swift      # Close-warning handling
-│   └── WorkspaceModel.swift         # Shared workspace state
-├── Enums/                  # Shared presentation and domain enums
-│   ├── AppTheme.swift                # Supported appearance modes
-│   ├── AppStorageKeys.swift         # UserDefaults keys for AppStorage
-│   ├── AudioFileDecoderError.swift   # Audio decoding errors
-│   ├── AudioMetadataWriterError.swift # Metadata writing errors
-│   ├── BPMAdjustment.swift           # Supported BPM transformations
-│   ├── TrackAnalysisStatus.swift     # Track analysis state
-│   └── WaveformDimming.swift         # Waveform attenuation side
-├── Views/                  # App-level SwiftUI views
-│   └── PreferencesView.swift        # Settings layout and theme picker
-├── Models/                 # SwiftUI-independent domain models
-├── Features/
-│   ├── Workspace/          # Main window layout and file import
-│   ├── TrackList/          # Imported track library and selection
-│   └── Waveform/           # Selected-track analysis, beats, and waveform area
-├── Services/
-│   ├── Audio/              # macOS audio decoding
-│   └── Analysis/           # Analysis service, bridge, and BPM core
-├── BPM-Calculator-Bridging-Header.h
-└── Assets.xcassets
-```
+## Directory map
 
-## Dependencies
-
-`App` composes the application, owns the workspace state, and configures the main window. `MainWindowScene` contains the main window scene and its commands, while `MainWindowDelegate` and `MainWindowAccessor` keep AppKit window behavior separate from scene composition. `Views` contains app-level SwiftUI views such as the settings screen. `Features` receive state and models; they do not know about decoding or DSP. `Models` do not depend on SwiftUI. Audio decoding and BPM analysis live in `Services` and are consumed by the workspace model through concrete operations.
-
-`AppTheme` defines the three supported appearance modes (`system`, `light`, and `dark`) and maps them to SwiftUI color schemes. `AppConfiguration` owns the default preference values, while `PreferencesView` persists the selected mode, waveform attenuation side, and beat-marker visibility with `AppStorage`; `MainWindowScene` observes the theme preference so the main window and settings use the selected theme.
-
-`TrackListView` exposes BPM transformations in a contextual submenu once a track has finished processing. `WorkspaceModel.adjustBPM(for:using:)` replaces the calculated BPM while preserving the rest of the analysis result, so the table and metadata-saving flow use the adjusted value. The BPM column marks tracks whose calculated value differs from metadata, unless the value was manually adjusted, and marks manual adjustments separately. Both indicators provide explanatory tooltips. `WorkspaceView` provides a clear-tracks action and asks for confirmation when there are unsaved BPM values.
-
-## Mixxx-compatible analysis
-
-The implementation follows the upstream [Mixxx repository](https://github.com/mixxxdj/mixxx) and the decisions recorded in [`MIXXX_BPM_ANALYSIS.md`](../../MIXXX_BPM_ANALYSIS.md). The current flow is:
+The diagram intentionally shows directories, not every file in the project.
 
 ```text
-file importer
-  → AVAudioFile / AVAudioConverter
-  → interleaved stereo float32 PCM
-  → MixxxBpmAnalyzer (QM-DSP tempo tracker)
-  → BPMAnalysisResult
-  → UI
+audio-analyzer/
+├── Audio Analyzer/                 # Application source and bundled resources
+│   ├── App/                         # App composition, window lifecycle, shared state
+│   ├── Enums/                       # Small domain and presentation enums/errors
+│   ├── Features/                    # User-facing feature areas
+│   │   ├── Workspace/               # Main workspace and file import
+│   │   ├── TrackList/               # Imported-track table and track actions
+│   │   └── Waveform/                # Waveform, playback, seeking, and beat markers
+│   ├── Models/                      # SwiftUI-independent domain values
+│   ├── Services/                    # I/O, decoding, and analysis operations
+│   │   ├── Audio/                   # Audio decoding, waveform extraction, metadata I/O
+│   │   └── Analysis/                # Analysis orchestration and language bridge
+│   │       └── Core/                # Standalone C++ BPM algorithm
+│   │           └── Vendor/           # Upstream third-party source and licenses
+│   │               └── qm-dsp/       # QM-DSP onset and tempo tracking subset
+│   │                   └── ext/     # Dependencies bundled by QM-DSP
+│   │                       └── kissfft/ # FFT implementation used by QM-DSP
+│   ├── Views/                       # App-level settings and other shared views
+│   └── Assets.xcassets/             # App icons and asset catalog
+├── ReadmeAssets/                    # Images used by the repository README
+└── Audio Analyzer.xcodeproj/        # Xcode project, target, and build settings
 ```
 
-`AudioFileDecoder` preserves the source sample rate and delivers blocks of 4096 frames. `MixxxBpmAnalyzer` uses the `qm-tempotracker:0` path with `fixedTempo=true` and `fastAnalysis=false`. Its post-processing preserves constant regions, BPM snapping, phase adjustment, and final frame rounding.
+The repository root also contains documentation and project metadata. Keep
+user-facing project information in `README.md`, licensing in `LICENSE.md`,
+third-party attribution in `THIRD_PARTY_NOTICES.md`, and ignore rules in
+`.gitignore`. The `Audio Analyzer` directory contains the technical
+architecture and third-party notices that ship with the source tree.
 
-The Objective-C++ bridge exposes BPM, first beat, sample rate, and raw beat frames to Swift. `TrackAnalysisService` keeps file I/O and concurrency outside the algorithm and limits simultaneous analyses to `max(1, CPU/2)`.
+### Directory ownership
 
-The vendored QM-DSP/KissFFT subset and third-party licensing information are documented in `Services/Analysis/Core/MixxxBpmAnalyzer.md` and `THIRD_PARTY_NOTICES.md`. Metadata exports preserve the existing metadata and replace only the BPM item; they use an item-replacement directory on the source file's volume so sandboxed writes can safely replace the original file. Persistence, caching, key detection, and variable-tempo UI remain separate follow-up work.
+- **`App/`** owns composition and application lifecycle. It creates the shared
+  `WorkspaceModel`, configures the main window and commands, and handles window
+  close warnings. It is the right place for application-wide state, not for
+  feature-specific rendering.
+- **`Enums/`** contains small shared enums and user-facing error types. Put a
+  type here when it is shared by multiple areas and is not itself a model or a
+  view.
+- **`Features/`** contains UI grouped by user capability. Feature views render
+  state and emit user intent through bindings or closures. They should not own
+  workspace-wide business rules or the BPM algorithm.
+- **`Models/`** contains values such as tracks and analysis results. Models do
+  not import SwiftUI and should remain safe to pass across asynchronous work.
+- **`Services/Audio/`** is the boundary with AVFoundation for reading audio,
+  extracting waveform data, reading metadata, and writing BPM metadata.
+- **`Services/Analysis/`** coordinates file analysis and exposes the
+  Objective-C++ bridge used by Swift. It keeps scheduling and file I/O outside
+  the algorithm.
+- **`Services/Analysis/Core/`** is the platform-independent C++ analysis core.
+  It must not depend on SwiftUI, AppKit, workspace state, or view code.
+- **`Services/Analysis/Core/Vendor/`** is reserved for upstream-derived code
+  and its license files. Do not mix application-specific Swift or C++ helpers
+  into this directory.
+- **`Views/`** contains app-level views such as Preferences. A view belongs
+  here when it is shared by the app rather than tied to one feature.
+- **`Assets.xcassets/`** contains visual resources managed by Xcode, not
+  runtime code.
+- **`ReadmeAssets/`** contains documentation images only; it is not an app
+  resource directory.
+
+## Runtime flow
+
+### Import and analysis
+
+```text
+file picker / drag and drop
+        ↓
+WorkspaceModel.importTracks(from:)
+        ↓ validates audio URLs and removes duplicates
+        ├── AudioFileDecoder.metadata(for:)
+        └── TrackAnalysisService.analyze(url:)
+                ↓
+        AudioFileDecoder / AVAudioConverter
+                ↓ source-rate, interleaved stereo float32 PCM
+        MixxxBPMAnalyzerBridge
+                ↓
+        MixxxBpmAnalyzer (QM-DSP tempo tracker)
+                ↓
+        BPMAnalysisResult
+                ↓
+        WorkspaceModel → TrackListView / WaveformView
+```
+
+The workspace model is the coordinator for imported tracks, selection, status,
+manual BPM changes, and metadata saves. Views receive the resulting state and
+send actions back to the model.
+
+### Waveform and playback
+
+When a track is selected, `WaveformView` loads waveform peaks through the audio
+decoder and creates an `AVAudioPlayer` for playback. `WaveformEditorView`
+composes the zoomed view, overview, controls, and progress. `WaveformCanvas`
+does the drawing and exposes a slider-based accessibility representation.
+
+The selected track's raw beat frames are converted to normalized positions for
+display. Playback is independent from BPM analysis; neither operation should
+be made a prerequisite for the other.
+
+### Metadata
+
+Metadata is read when a track is imported. Saving is explicit: the metadata
+writer preserves existing metadata and replaces only the BPM item, then safely
+replaces the original file. A calculated or manually adjusted BPM is considered
+unsaved until that operation succeeds.
+
+## General code conventions
+
+### Structure and naming
+
+- Use one primary type per source file when practical, and name the file after
+  that type.
+- Use `UpperCamelCase` for types and `lowerCamelCase` for methods and
+  properties. Preserve established technical initialisms such as `BPM`, `URL`,
+  `PCM`, `DSP`, and `AV`.
+- Keep directories named after responsibilities and group a new feature under
+  `Features/<FeatureName>/` rather than adding unrelated views to an existing
+  feature.
+- Prefer the existing concrete types and services. Do not add a protocol,
+  factory, coordinator, or dependency for a single implementation without a
+  demonstrated need.
+- Prefer native Swift, SwiftUI, AppKit, and AVFoundation APIs. The project has
+  no third-party Swift package dependency.
+
+### Swift style
+
+- Use four-space indentation, braces on the same line, and the existing Xcode
+  formatting style for multiline calls and declarations.
+- Prefer early exits with `guard` for invalid input and unavailable state.
+- Keep view-only formatting and small helper calculations private to the view.
+  Shared domain rules belong in a model, enum, or service.
+- Keep SwiftUI views as value types. Use `@State` for view-local transient
+  state, `@Binding` for state owned by a parent, and closures for actions that
+  must be handled by a parent or model.
+- Use `@Observable` and `@MainActor` for shared mutable UI state, as with
+  `WorkspaceModel`. Avoid global mutable state.
+- Keep models independent from SwiftUI. Values crossing task boundaries should
+  be `Sendable` where appropriate.
+- Use computed properties for derived presentation values instead of storing
+  duplicate state.
+- Use `LocalizedError` for errors that can reach the UI, with a stable error
+  case and a concise `errorDescription`.
+- Use native controls and preserve accessibility support. Interactive custom
+  drawing should provide an accessibility equivalent, labels, and help text
+  where the existing UI does so.
+- Store user preferences with `@AppStorage`. Add a key in `AppStorageKeys`, a
+  default in `AppConfiguration`, and the corresponding control in
+  `PreferencesView`; if the setting affects the main window, apply it there as
+  well.
+
+### Concurrency and file access
+
+- UI state is main-actor isolated. Do not update models or views directly from
+  background work.
+- Keep blocking audio decoding and analysis off the main actor. Waveform work
+  uses detached work and track analysis uses an `OperationQueue` limited to
+  `max(1, CPU / 2)` operations.
+- Use task cancellation checks for new long-running asynchronous operations and
+  avoid retaining the workspace unnecessarily from tasks.
+- Every user-selected security-scoped URL must balance
+  `startAccessingSecurityScopedResource()` with
+  `stopAccessingSecurityScopedResource()`, normally using `defer`.
+- Validate file URLs and audio types at the import boundary. Deduplicate using
+  standardized, symlink-resolved paths before creating track state.
+- Propagate failures to the model and present them through the existing alert
+  pattern. Do not silently convert a failed analysis into a successful result.
+
+## Adding a new feature
+
+1. **Define the state and owner first.** Decide whether the state is transient
+   view state, selected-track state, or workspace-wide state. Put it in the
+   smallest appropriate owner; shared state belongs in `WorkspaceModel`.
+2. **Choose the directory by responsibility.** Add feature UI under
+   `Features/<FeatureName>/`; reusable domain values under `Models/` or
+   `Enums/`; file or platform operations under the appropriate service.
+3. **Keep the data flow one-way.** The model/service produces state, the view
+   renders it, and user actions travel back through a binding or callback. Do
+   not make a child view mutate a sibling or reach into workspace internals.
+4. **Reuse existing services.** Extend `AudioFileDecoder`,
+   `AudioMetadataWriter`, or `TrackAnalysisService` when the new behavior is
+   part of an existing boundary. Do not duplicate AVFoundation setup in a new
+   feature.
+5. **Handle all UI states.** Consider empty, loading/queued, completed, failed,
+   unavailable, and cancellation states. Keep destructive or data-loss actions
+   behind the existing confirmation pattern.
+6. **Preserve file safety.** Metadata changes must be explicit, preserve all
+   unrelated metadata, and use security-scoped access for imported files.
+7. **Add preferences consistently.** Follow the `AppStorageKeys` →
+   `AppConfiguration` → `PreferencesView` path rather than introducing a
+   second settings mechanism.
+8. **Add accessibility with the feature.** Label custom controls, provide
+   keyboard support when appropriate, and expose an equivalent native control
+   for custom-drawn interactions.
+9. **Keep the diff focused.** Do not reorganize unrelated directories or
+   introduce abstractions for hypothetical future requirements.
+10. **Validate the user flow.** Build the **Audio Analyzer** scheme and manually
+    exercise the new flow with valid, invalid, empty, and repeated inputs as
+    applicable. SwiftUI previews are useful for view-only changes. The project
+    currently has no test target, so build and focused manual checks are the
+    existing baseline.
+
+## BPM analysis constraints
+
+The C++ core follows the upstream Mixxx `qm-tempotracker:0` path. These details
+are part of the result and must not be changed casually:
+
+- Preserve the source sample rate and pass interleaved stereo float32 PCM.
+- Use one analyzer instance per track and call `finish()` exactly once.
+- Preserve the 4096-frame decoding blocks, downmix, overlap, leading/trailing
+  padding, detection-function settings, and Mixxx post-processing.
+- Preserve the truncating step-size calculation, integer half-step offset,
+  constant-region processing, phase adjustment, and BPM snapping behavior.
+- Keep the C++ core independent from scheduling, file I/O, and UI. Adapt types
+  at the Objective-C++ bridge rather than leaking Swift or AppKit concerns into
+  the algorithm.
+- Preserve upstream copyright headers and license files when modifying or
+  moving vendored QM-DSP/KissFFT code. Update the third-party notices when
+  adding another upstream-derived component.
+
+## Current boundaries
+
+The current implementation intentionally does not provide persistent analysis
+or caching, key detection, stem-specific semantics, the legacy SoundTouch
+analyzer, or a variable-tempo beat-grid UI. A new feature in one of these areas
+should first define its state, persistence, and compatibility requirements
+instead of quietly changing the existing fixed-tempo flow.
