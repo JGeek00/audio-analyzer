@@ -8,12 +8,19 @@
 
 /* Begin PBXFileReference section */
 		0D46747D3048963400F71BC3 /* Audio Analyzer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Audio Analyzer.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		0D4674823048963400F71BC3 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		0D4674833048963400F71BC3 /* LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LICENSE.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		0D46747F3048963400F71BC3 /* Audio Analyzer */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "Audio Analyzer";
+			sourceTree = "<group>";
+		};
+		0D4678D43048E1BC00F71BC3 /* ReadmeAssets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ReadmeAssets;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -33,7 +40,10 @@
 			isa = PBXGroup;
 			children = (
 				0D46747F3048963400F71BC3 /* Audio Analyzer */,
+				0D4674823048963400F71BC3 /* README.md */,
+				0D4674833048963400F71BC3 /* LICENSE.md */,
 				0D46747E3048963400F71BC3 /* Products */,
+				0D4678D43048E1BC00F71BC3 /* ReadmeAssets */,
 			);
 			sourceTree = "<group>";
 		};
