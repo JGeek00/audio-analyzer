@@ -4,6 +4,7 @@ struct WaveformCanvas: View {
     let peaks: [WaveformPeak]
     let dimPlayed: Bool
     let amplitudeScale: Float
+    let resolutionMultiplier: Int
     let beatPositions: [Double]
     let visibleRange: ClosedRange<Double>
     let progress: Double
@@ -16,7 +17,7 @@ struct WaveformCanvas: View {
                 let width = max(size.width, 1)
                 let height = max(size.height, 1)
                 let span = max(visibleRange.upperBound - visibleRange.lowerBound, 0.0001)
-                let lineCount = max(Int((width * 4).rounded(.up)), 1)
+                let lineCount = max(Int((width * CGFloat(resolutionMultiplier)).rounded(.up)), 1)
                 let peakCount = max(peaks.count - 1, 1)
                 let center = height / 2
                 let amplitude = center * 0.9
@@ -86,7 +87,7 @@ struct WaveformCanvas: View {
                     var beatLine = Path()
                     beatLine.move(to: CGPoint(x: beatX, y: 0))
                     beatLine.addLine(to: CGPoint(x: beatX, y: height))
-                    context.stroke(beatLine, with: .color(.white.opacity(0.34)), lineWidth: 2)
+                    context.stroke(beatLine, with: .color(.white.opacity(0.72)), lineWidth: 2)
                 }
 
                 if progress >= visibleRange.lowerBound && progress <= visibleRange.upperBound {

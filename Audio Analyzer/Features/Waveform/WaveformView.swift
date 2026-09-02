@@ -16,6 +16,7 @@ struct WaveformView: View {
     @State private var zoom = 32.0
     @AppStorage(AppStorageKeys.waveformDimming) private var waveformDimming = AppConfiguration.defaultWaveformDimming.rawValue
     @AppStorage(AppStorageKeys.showBeatMarkers) private var showBeatMarkers = AppConfiguration.defaultShowBeatMarkers
+    @AppStorage(AppStorageKeys.lowPerformanceMode) private var lowPerformanceMode = AppConfiguration.defaultLowPerformanceMode
 
     private let progressTimer = Timer.publish(every: 0.25, on: .main, in: .common).autoconnect()
 
@@ -68,6 +69,7 @@ struct WaveformView: View {
                     WaveformEditorView(
                         waveform: waveform,
                         amplitudeScale: maximumRMS,
+                        lowPerformanceMode: lowPerformanceMode,
                         player: player,
                         isPlaying: isPlaying,
                         dimPlayed: shouldDimPlayed,

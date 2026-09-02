@@ -4,6 +4,7 @@ import SwiftUI
 struct WaveformEditorView: View {
     let waveform: [WaveformPeak]
     let amplitudeScale: Float
+    let lowPerformanceMode: Bool
     let player: AVAudioPlayer?
     let isPlaying: Bool
     let dimPlayed: Bool
@@ -13,7 +14,7 @@ struct WaveformEditorView: View {
     let onSeek: (Double) -> Void
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 120.0, paused: !isPlaying)) { _ in
+        TimelineView(.animation(minimumInterval: lowPerformanceMode ? 1.0 / 30.0 : 1.0 / 120.0, paused: !isPlaying)) { _ in
             let progress = livePlaybackProgress
 
             VStack(spacing: 8) {
@@ -21,6 +22,7 @@ struct WaveformEditorView: View {
                     peaks: waveform,
                     dimPlayed: dimPlayed,
                     amplitudeScale: amplitudeScale,
+                    resolutionMultiplier: lowPerformanceMode ? 2 : 4,
                     beatPositions: showBeatMarkers ? beatPositions : [],
                     visibleRange: zoomedRange(for: progress),
                     progress: progress,
@@ -36,6 +38,7 @@ struct WaveformEditorView: View {
                     peaks: waveform,
                     dimPlayed: dimPlayed,
                     amplitudeScale: amplitudeScale,
+                    resolutionMultiplier: lowPerformanceMode ? 2 : 4,
                     beatPositions: [],
                     visibleRange: 0...1,
                     progress: progress,
