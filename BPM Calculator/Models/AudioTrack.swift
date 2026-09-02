@@ -29,6 +29,7 @@ struct AudioTrack: Identifiable, Hashable {
     var analysis: BPMAnalysisResult?
     var persistedBPM: Double?
     var analysisStatus: TrackAnalysisStatus = .queued
+    var hasManuallyAdjustedBPM = false
 
     init(
             id: UUID = UUID(),
@@ -38,7 +39,8 @@ struct AudioTrack: Identifiable, Hashable {
             artwork: Data? = nil,
             analysis: BPMAnalysisResult? = nil,
             persistedBPM: Double? = nil,
-            analysisStatus: TrackAnalysisStatus = .queued) {
+            analysisStatus: TrackAnalysisStatus = .queued,
+            hasManuallyAdjustedBPM: Bool = false) {
         self.id = id
         self.url = url
         self.metadataTitle = metadataTitle
@@ -47,6 +49,7 @@ struct AudioTrack: Identifiable, Hashable {
         self.analysis = analysis
         self.persistedBPM = persistedBPM
         self.analysisStatus = analysisStatus
+        self.hasManuallyAdjustedBPM = hasManuallyAdjustedBPM
     }
 
     var title: String {

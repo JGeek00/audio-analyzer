@@ -5,12 +5,13 @@ struct TrackListView: View {
     let tracks: [AudioTrack]
     @Binding var selection: AudioTrack.ID?
     let onRemove: (AudioTrack.ID) -> Void
+    let onAdjustBPM: (AudioTrack.ID, BPMAdjustment) -> Void
     let onSaveMetadata: (AudioTrack.ID) -> Void
     @State private var sortOrder: [KeyPathComparator<AudioTrack>] = []
 
     var body: some View {
         Table(sortedTracks, selection: $selection, sortOrder: $sortOrder) {
-            TableColumn("Artwork", value: \.artworkSortValue) { track in
+            TableColumn("Artwork") { track in
                 if let artwork = track.artwork, let image = NSImage(data: artwork) {
                     Image(nsImage: image)
                         .resizable()
@@ -25,7 +26,7 @@ struct TrackListView: View {
                         .accessibilityLabel("Artwork unavailable")
                 }
             }
-            .width(min: 48, ideal: 64, max: 80)
+            .width(min: 48, ideal: 48, max: 48)
 
             TableColumn("Title", value: \.title)
 
@@ -40,8 +41,24 @@ struct TrackListView: View {
             }
 
             TableColumn("BPM", value: \.bpmValue) { track in
-                Text(bpm(for: track))
-                    .monospacedDigit()
+                HStack(spacing: 6) {
+                    Text(bpm(for: track))
+                        .monospacedDigit()
+
+                    if track.hasUnsavedBPM && !track.hasManuallyAdjustedBPM {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.orange)
+                            .help("Calculated BPM differs from metadata")
+                            .accessibilityLabel("Calculated BPM differs from metadata")
+                    }
+
+                    if track.hasManuallyAdjustedBPM {
+                        Image(systemName: "pencil.circle.fill")
+                            .foregroundStyle(.blue)
+                            .help("BPM manually adjusted")
+                            .accessibilityLabel("BPM manually adjusted")
+                    }
+                }
             }
         }
         .overlay {
@@ -67,6 +84,16 @@ struct TrackListView: View {
                     } label: {
                         Label("Remove", systemImage: "xmark")
                     }
+                }
+                Section {
+                    Menu("Modificar BPM") {
+                        ForEach(BPMAdjustment.allCases) { adjustment in
+                            Button(adjustment.menuTitle(for: track.bpmValue)) {
+                                onAdjustBPM(trackID, adjustment)
+                            }
+                        }
+                    }
+                    .disabled(track.analysisStatus != .completed || track.analysis?.hasDetectedBPM != true)
                 }
                 Section {
                     Button {
@@ -101,6 +128,7 @@ struct TrackListView: View {
         tracks: [],
         selection: .constant(nil),
         onRemove: { _ in },
+        onAdjustBPM: { _, _ in },
         onSaveMetadata: { _ in }
     )
         .frame(width: 900, height: 500)

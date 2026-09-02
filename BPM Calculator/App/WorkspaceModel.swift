@@ -15,6 +15,10 @@ final class WorkspaceModel {
         tracks.first { $0.id == selectedTrackID }
     }
 
+    var hasUnsavedBPMValues: Bool {
+        tracks.contains(where: \.hasUnsavedBPM)
+    }
+
     var closeWarningMessage: String? {
         let processingCount = tracks.filter(\.isProcessing).count
         let unsavedBPMCount = tracks.filter(\.hasUnsavedBPM).count
@@ -38,6 +42,26 @@ final class WorkspaceModel {
         }
     }
 
+    func clearTracks() {
+        tracks.removeAll()
+        selectedTrackID = nil
+    }
+
+    func adjustBPM(for trackID: AudioTrack.ID, using adjustment: BPMAdjustment) {
+        guard let index = tracks.firstIndex(where: { $0.id == trackID }),
+              tracks[index].analysisStatus == .completed,
+              let analysis = tracks[index].analysis,
+              analysis.hasDetectedBPM else { return }
+
+        tracks[index].analysis = BPMAnalysisResult(
+            bpm: analysis.bpm * adjustment.multiplier,
+            firstBeatFrame: analysis.firstBeatFrame,
+            sampleRate: analysis.sampleRate,
+            rawBeatFrames: analysis.rawBeatFrames
+        )
+        tracks[index].hasManuallyAdjustedBPM = true
+    }
+
     func saveMetadata(for trackID: AudioTrack.ID) async throws {
         guard let track = tracks.first(where: { $0.id == trackID }) else { return }
         guard track.analysisStatus == .completed,
@@ -46,8 +70,6 @@ final class WorkspaceModel {
             throw AudioMetadataWriterError.noDetectedBPM
         }
         try await AudioMetadataWriter().save(
-            title: track.title,
-            artist: track.artist,
             bpm: analysis.bpm,
             to: track.url
         )

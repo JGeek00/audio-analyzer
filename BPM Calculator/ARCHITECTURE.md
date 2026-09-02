@@ -11,7 +11,8 @@ BPM Calculator/
 │   ├── MainWindowDelegate.swift      # Close-warning handling
 │   └── WorkspaceModel.swift         # Shared workspace state
 ├── Enums/                  # Shared presentation and domain enums
-│   └── AppTheme.swift      # Supported appearance modes
+│   ├── AppTheme.swift      # Supported appearance modes
+│   └── BPMAdjustment.swift # Supported BPM transformations
 ├── Views/                  # App-level SwiftUI views
 │   └── PreferencesView.swift        # Settings layout and theme picker
 ├── Models/                 # SwiftUI-independent domain models
@@ -32,6 +33,8 @@ BPM Calculator/
 
 `AppTheme` defines the three supported appearance modes (`system`, `light`, and `dark`) and maps them to SwiftUI color schemes. `PreferencesView` persists the selected mode with `AppStorage`; `MainWindowScene` observes the same preference so the main window and settings use the selected theme.
 
+`TrackListView` exposes BPM transformations in a contextual submenu once a track has finished processing. `WorkspaceModel.adjustBPM(for:using:)` replaces the calculated BPM while preserving the rest of the analysis result, so the table and metadata-saving flow use the adjusted value. The BPM column marks tracks whose calculated value differs from metadata, unless the value was manually adjusted, and marks manual adjustments separately. Both indicators provide explanatory tooltips. `WorkspaceView` provides a clear-tracks action and asks for confirmation when there are unsaved BPM values.
+
 ## Mixxx-compatible analysis
 
 The implementation follows the upstream [Mixxx repository](https://github.com/mixxxdj/mixxx) and the decisions recorded in [`MIXXX_BPM_ANALYSIS.md`](../../MIXXX_BPM_ANALYSIS.md). The current flow is:
@@ -49,4 +52,4 @@ file importer
 
 The Objective-C++ bridge exposes BPM, first beat, sample rate, and raw beat frames to Swift. `TrackAnalysisService` keeps file I/O and concurrency outside the algorithm and limits simultaneous analyses to `max(1, CPU/2)`.
 
-The vendored QM-DSP/KissFFT subset and third-party licensing information are documented in `Services/Analysis/Core/MixxxBpmAnalyzer.md` and `THIRD_PARTY_NOTICES.md`. Persistence, caching, key detection, variable-tempo UI, and waveform rendering remain separate follow-up work.
+The vendored QM-DSP/KissFFT subset and third-party licensing information are documented in `Services/Analysis/Core/MixxxBpmAnalyzer.md` and `THIRD_PARTY_NOTICES.md`. Metadata exports preserve the existing metadata and replace only the BPM item; they use an item-replacement directory on the source file's volume so sandboxed writes can safely replace the original file. Persistence, caching, key detection, variable-tempo UI, and waveform rendering remain separate follow-up work.

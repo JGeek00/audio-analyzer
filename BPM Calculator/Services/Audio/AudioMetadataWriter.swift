@@ -22,7 +22,7 @@ enum AudioMetadataWriterError: LocalizedError {
 }
 
 final class AudioMetadataWriter {
-    func save(title: String, artist: String?, bpm: Double, to url: URL) async throws {
+    func save(bpm: Double, to url: URL) async throws {
         let hasSecurityScope = url.startAccessingSecurityScopedResource()
         defer {
             if hasSecurityScope {
@@ -31,7 +31,12 @@ final class AudioMetadataWriter {
         }
 
         let asset = AVURLAsset(url: url)
-        let metadata = try await asset.load(.commonMetadata)
+        let metadata: [AVMetadataItem]
+        do {
+            metadata = try await asset.load(.metadata)
+        } catch {
+            metadata = try await asset.load(.commonMetadata)
+        }
         guard let exportSession = AVAssetExportSession(
             asset: asset,
             presetName: AVAssetExportPresetPassthrough
@@ -45,14 +50,8 @@ final class AudioMetadataWriter {
 
         var outputMetadata = metadata
         outputMetadata.removeAll { item in
-            item.identifier == .commonIdentifierTitle
-                || item.identifier == .commonIdentifierArtist
-                || item.identifier == .id3MetadataBeatsPerMinute
+            item.identifier == .id3MetadataBeatsPerMinute
                 || item.identifier == .iTunesMetadataBeatsPerMin
-        }
-        outputMetadata.append(metadataItem(identifier: .commonIdentifierTitle, value: title))
-        if let artist, !artist.isEmpty {
-            outputMetadata.append(metadataItem(identifier: .commonIdentifierArtist, value: artist))
         }
 
         let bpmItem = AVMutableMetadataItem()
@@ -63,9 +62,15 @@ final class AudioMetadataWriter {
         outputMetadata.append(bpmItem)
         exportSession.metadata = outputMetadata
 
-        let temporaryURL = url.deletingLastPathComponent()
+        let replacementDirectory = try FileManager.default.url(
+            for: .itemReplacementDirectory,
+            in: .userDomainMask,
+            appropriateFor: url,
+            create: true
+        )
+        let temporaryURL = replacementDirectory
                 .appendingPathComponent(".bpm-\(UUID().uuidString).\(url.pathExtension)")
-        defer { try? FileManager.default.removeItem(at: temporaryURL) }
+        defer { try? FileManager.default.removeItem(at: replacementDirectory) }
 
         try await exportSession.export(to: temporaryURL, as: fileType)
         do {
@@ -73,16 +78,6 @@ final class AudioMetadataWriter {
         } catch {
             throw AudioMetadataWriterError.replacementFailed(error.localizedDescription)
         }
-    }
-
-    private func metadataItem(
-        identifier: AVMetadataIdentifier,
-        value: String
-    ) -> AVMutableMetadataItem {
-        let item = AVMutableMetadataItem()
-        item.identifier = identifier
-        item.value = value as NSString
-        return item
     }
 
     private func fileType(for url: URL, supported: [AVFileType]) -> AVFileType? {
