@@ -3,7 +3,7 @@
 The application is organized by responsibility:
 
 ```text
-BPM Calculator/
+Audio Analyzer/
 ├── App/                    # App composition, window scenes, and shared state
 │   ├── BPMCalculatorApp.swift       # Root app and scene declarations
 │   ├── AppConfiguration.swift        # Application defaults

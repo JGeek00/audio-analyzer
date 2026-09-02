@@ -9,7 +9,7 @@ struct MainWindowScene: Scene {
     }
 
     var body: some Scene {
-        Window("BPM Calculator", id: "main") {
+        Window("Audio Analyzer", id: "main") {
             WorkspaceView(model: model)
                 .frame(minWidth: 700, minHeight: 500)
                 .preferredColorScheme(selectedTheme.colorScheme)

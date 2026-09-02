@@ -105,7 +105,7 @@ struct TrackListView: View {
                 }
             }
         }
-        .navigationTitle("BPM Calculator")
+        .navigationTitle("Audio Analyzer")
     }
 
     private var sortedTracks: [AudioTrack] {
