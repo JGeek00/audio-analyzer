@@ -6,6 +6,7 @@ struct WaveformView: View {
     let track: AudioTrack?
 
     @State private var waveform: [WaveformPeak] = []
+    @State private var maximumRMS: Float = 0.0001
     @State private var player: AVAudioPlayer?
     @State private var loadedScopedURL: URL?
     @State private var currentTime: TimeInterval = 0
@@ -16,7 +17,7 @@ struct WaveformView: View {
     @AppStorage(AppStorageKeys.waveformDimming) private var waveformDimming = AppConfiguration.defaultWaveformDimming.rawValue
     @AppStorage(AppStorageKeys.showBeatMarkers) private var showBeatMarkers = AppConfiguration.defaultShowBeatMarkers
 
-    private let progressTimer = Timer.publish(every: 1.0 / 30.0, on: .main, in: .common).autoconnect()
+    private let progressTimer = Timer.publish(every: 0.25, on: .main, in: .common).autoconnect()
 
     var body: some View {
         VStack(spacing: 10) {
@@ -66,6 +67,7 @@ struct WaveformView: View {
                 } else {
                     WaveformEditorView(
                         waveform: waveform,
+                        amplitudeScale: maximumRMS,
                         player: player,
                         isPlaying: isPlaying,
                         dimPlayed: shouldDimPlayed,
@@ -89,9 +91,9 @@ struct WaveformView: View {
             await load(track: track)
         }
         .onReceive(progressTimer) { _ in
-            guard let player else { return }
+            guard isPlaying, let player else { return }
             currentTime = player.currentTime
-            if isPlaying && !player.isPlaying {
+            if !player.isPlaying {
                 isPlaying = false
             }
         }
@@ -103,6 +105,7 @@ struct WaveformView: View {
     private func load(track: AudioTrack?) async {
         unloadPlayer()
         waveform = []
+        maximumRMS = 0.0001
         currentTime = 0
         zoom = 32
         loadError = nil
@@ -114,6 +117,7 @@ struct WaveformView: View {
         do {
             let peaks = try await AudioFileDecoder().waveform(for: track.url)
             try Task.checkCancellation()
+            maximumRMS = max(peaks.reduce(0) { max($0, $1.rms) }, 0.0001)
             waveform = peaks
 
             let hasSecurityScope = track.url.startAccessingSecurityScopedResource()

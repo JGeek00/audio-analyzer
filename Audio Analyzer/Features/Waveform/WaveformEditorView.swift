@@ -3,6 +3,7 @@ import SwiftUI
 
 struct WaveformEditorView: View {
     let waveform: [WaveformPeak]
+    let amplitudeScale: Float
     let player: AVAudioPlayer?
     let isPlaying: Bool
     let dimPlayed: Bool
@@ -12,14 +13,14 @@ struct WaveformEditorView: View {
     let onSeek: (Double) -> Void
 
     var body: some View {
-        TimelineView(.animation(paused: !isPlaying)) { _ in
+        TimelineView(.animation(minimumInterval: 1.0 / 120.0, paused: !isPlaying)) { _ in
             let progress = livePlaybackProgress
 
             VStack(spacing: 8) {
                 WaveformCanvas(
                     peaks: waveform,
                     dimPlayed: dimPlayed,
-                    amplitudeScale: maximumRMS,
+                    amplitudeScale: amplitudeScale,
                     beatPositions: showBeatMarkers ? beatPositions : [],
                     visibleRange: zoomedRange(for: progress),
                     progress: progress,
@@ -34,7 +35,7 @@ struct WaveformEditorView: View {
                 WaveformCanvas(
                     peaks: waveform,
                     dimPlayed: dimPlayed,
-                    amplitudeScale: maximumRMS,
+                    amplitudeScale: amplitudeScale,
                     beatPositions: [],
                     visibleRange: 0...1,
                     progress: progress,
@@ -82,10 +83,6 @@ struct WaveformEditorView: View {
     private var livePlaybackProgress: Double {
         guard let player, player.duration > 0 else { return 0 }
         return min(max(player.currentTime / player.duration, 0), 1)
-    }
-
-    private var maximumRMS: Float {
-        max(waveform.reduce(0) { max($0, $1.rms) }, 0.0001)
     }
 
     private func zoomedRange(for progress: Double) -> ClosedRange<Double> {

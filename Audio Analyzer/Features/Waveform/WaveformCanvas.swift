@@ -12,11 +12,11 @@ struct WaveformCanvas: View {
 
     var body: some View {
         GeometryReader { proxy in
-            Canvas { context, size in
+            Canvas(rendersAsynchronously: true) { context, size in
                 let width = max(size.width, 1)
                 let height = max(size.height, 1)
                 let span = max(visibleRange.upperBound - visibleRange.lowerBound, 0.0001)
-                let lineCount = max(Int(width.rounded(.up)), 1)
+                let lineCount = max(Int((width * 4).rounded(.up)), 1)
                 let peakCount = max(peaks.count - 1, 1)
                 let center = height / 2
                 let amplitude = center * 0.9
@@ -24,7 +24,7 @@ struct WaveformCanvas: View {
                 let lastPeak = min(peaks.count - 1, Int(ceil(visibleRange.upperBound * Double(peakCount))))
                 let peakStride = max(
                     1,
-                    Int(ceil(Double(peakCount) * span / Double(lineCount * 8)))
+                    Int(ceil(Double(peakCount) * span / Double(lineCount)))
                 )
                 let firstDrawnPeak = max(0, firstPeak / peakStride * peakStride - peakStride)
                 let lastDrawnPeak = min(
