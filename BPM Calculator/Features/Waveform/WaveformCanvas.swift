@@ -2,6 +2,8 @@ import SwiftUI
 
 struct WaveformCanvas: View {
     let peaks: [WaveformPeak]
+    let dimPlayed: Bool
+    let amplitudeScale: Float
     let visibleRange: ClosedRange<Double>
     let progress: Double
     let accessibilityLabel: String
@@ -29,8 +31,8 @@ struct WaveformCanvas: View {
                     (lastPeak + peakStride - 1) / peakStride * peakStride
                 )
                 let colorBandCount = 18
-                var playedPaths = Array(repeating: Path(), count: colorBandCount)
-                var unplayedPaths = Array(repeating: Path(), count: colorBandCount)
+                var dimmedPaths = Array(repeating: Path(), count: colorBandCount)
+                var brightPaths = Array(repeating: Path(), count: colorBandCount)
 
                 var centerLine = Path()
                 centerLine.move(to: CGPoint(x: 0, y: center))
@@ -41,19 +43,21 @@ struct WaveformCanvas: View {
                     let position = Double(index) / Double(peakCount)
                     let peak = peaks[index]
                     let x = CGFloat((position - visibleRange.lowerBound) / span) * width
-                    let top = center - CGFloat(max(-1, min(1, peak.max))) * amplitude
-                    let bottom = center - CGFloat(max(-1, min(1, peak.min))) * amplitude
+                    let level = CGFloat(min(max(peak.rms / amplitudeScale, 0), 1))
+                    let top = center - level * amplitude
+                    let bottom = center + level * amplitude
 
                     let band = min(
                         colorBandCount - 1,
                         Int(min(max(Double(peak.rms), 0), 1) * Double(colorBandCount))
                     )
-                    if position <= progress {
-                        playedPaths[band].move(to: CGPoint(x: x, y: top))
-                        playedPaths[band].addLine(to: CGPoint(x: x, y: bottom))
+                    let isDimmed = (position <= progress) == dimPlayed
+                    if isDimmed {
+                        dimmedPaths[band].move(to: CGPoint(x: x, y: top))
+                        dimmedPaths[band].addLine(to: CGPoint(x: x, y: bottom))
                     } else {
-                        unplayedPaths[band].move(to: CGPoint(x: x, y: top))
-                        unplayedPaths[band].addLine(to: CGPoint(x: x, y: bottom))
+                        brightPaths[band].move(to: CGPoint(x: x, y: top))
+                        brightPaths[band].addLine(to: CGPoint(x: x, y: bottom))
                     }
                 }
 
@@ -63,13 +67,13 @@ struct WaveformCanvas: View {
                 )
                 for band in 0..<colorBandCount {
                     context.stroke(
-                        playedPaths[band],
-                        with: .color(peakColor(band: band, count: colorBandCount, played: true)),
+                        dimmedPaths[band],
+                        with: .color(peakColor(band: band, count: colorBandCount, dimmed: true)),
                         lineWidth: lineWidth
                     )
                     context.stroke(
-                        unplayedPaths[band],
-                        with: .color(peakColor(band: band, count: colorBandCount, played: false)),
+                        brightPaths[band],
+                        with: .color(peakColor(band: band, count: colorBandCount, dimmed: false)),
                         lineWidth: lineWidth
                     )
                 }
@@ -104,14 +108,14 @@ struct WaveformCanvas: View {
         }
     }
 
-    private func peakColor(band: Int, count: Int, played: Bool) -> Color {
+    private func peakColor(band: Int, count: Int, dimmed: Bool) -> Color {
         let loudness = (Double(band) + 0.5) / Double(count)
         var hue = (0.72 - loudness * 0.95).truncatingRemainder(dividingBy: 1)
         if hue < 0 { hue += 1 }
         return Color(
             hue: hue,
-            saturation: played ? 0.9 : 0.76,
-            brightness: played ? 0.98 : 0.72
+            saturation: dimmed ? 0.76 : 0.9,
+            brightness: dimmed ? 0.72 : 0.98
         )
     }
 }

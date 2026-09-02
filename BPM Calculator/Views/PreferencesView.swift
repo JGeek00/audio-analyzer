@@ -1,7 +1,8 @@
 import SwiftUI
 
 struct PreferencesView: View {
-    @AppStorage("appTheme") private var theme = AppTheme.system.rawValue
+    @AppStorage(AppStorageKeys.appTheme) private var theme = AppTheme.system.rawValue
+    @AppStorage(AppStorageKeys.waveformDimming) private var waveformDimming = WaveformDimming.listened.rawValue
 
     private var selectedTheme: AppTheme {
         AppTheme(rawValue: theme) ?? .system
@@ -17,9 +18,18 @@ struct PreferencesView: View {
                 }
                 .pickerStyle(.radioGroup)
             }
+
+            Section("Waveform") {
+                Picker("Dimmed section", selection: $waveformDimming) {
+                    ForEach(WaveformDimming.allCases) { option in
+                        Text(option.label).tag(option.rawValue)
+                    }
+                }
+                .pickerStyle(.radioGroup)
+            }
         }
         .formStyle(.grouped)
-        .frame(width: 500, height: 300)
+        .frame(width: 500, height: 380)
         .preferredColorScheme(selectedTheme.colorScheme)
     }
 }

@@ -12,7 +12,8 @@ struct WaveformView: View {
     @State private var isPlaying = false
     @State private var isLoading = false
     @State private var loadError: String?
-    @State private var zoom = 16.0
+    @State private var zoom = 32.0
+    @AppStorage(AppStorageKeys.waveformDimming) private var waveformDimming = WaveformDimming.listened.rawValue
 
     private let progressTimer = Timer.publish(every: 1.0 / 30.0, on: .main, in: .common).autoconnect()
 
@@ -66,6 +67,7 @@ struct WaveformView: View {
                         waveform: waveform,
                         player: player,
                         isPlaying: isPlaying,
+                        dimPlayed: shouldDimPlayed,
                         zoom: $zoom,
                         onSeek: seek(to:)
                     )
@@ -99,7 +101,7 @@ struct WaveformView: View {
         unloadPlayer()
         waveform = []
         currentTime = 0
-        zoom = 16
+        zoom = 32
         loadError = nil
         isLoading = false
 
@@ -130,6 +132,10 @@ struct WaveformView: View {
             isLoading = false
             loadError = error.localizedDescription
         }
+    }
+
+    private var shouldDimPlayed: Bool {
+        (WaveformDimming(rawValue: waveformDimming) ?? .listened).dimsPlayed
     }
 
     private func unloadPlayer() {

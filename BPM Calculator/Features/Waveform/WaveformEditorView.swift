@@ -5,6 +5,7 @@ struct WaveformEditorView: View {
     let waveform: [WaveformPeak]
     let player: AVAudioPlayer?
     let isPlaying: Bool
+    let dimPlayed: Bool
     @Binding var zoom: Double
     let onSeek: (Double) -> Void
 
@@ -15,6 +16,8 @@ struct WaveformEditorView: View {
             VStack(spacing: 8) {
                 WaveformCanvas(
                     peaks: waveform,
+                    dimPlayed: dimPlayed,
+                    amplitudeScale: maximumRMS,
                     visibleRange: zoomedRange(for: progress),
                     progress: progress,
                     accessibilityLabel: "Zoomed waveform",
@@ -27,6 +30,8 @@ struct WaveformEditorView: View {
 
                 WaveformCanvas(
                     peaks: waveform,
+                    dimPlayed: dimPlayed,
+                    amplitudeScale: maximumRMS,
                     visibleRange: 0...1,
                     progress: progress,
                     accessibilityLabel: "Track overview",
@@ -39,7 +44,7 @@ struct WaveformEditorView: View {
 
                 HStack(spacing: 8) {
                     Button {
-                        zoom = max(4, zoom - 0.5)
+                        zoom = max(4, zoom - 2)
                     } label: {
                         Image(systemName: "minus.magnifyingglass")
                     }
@@ -47,17 +52,17 @@ struct WaveformEditorView: View {
                     .disabled(zoom <= 4)
                     .accessibilityLabel("Zoom out")
 
-                    Slider(value: $zoom, in: 4...32, step: 0.5)
+                    Slider(value: $zoom, in: 4...50, step: 2)
                         .frame(maxWidth: 220)
                         .accessibilityLabel("Waveform zoom")
 
                     Button {
-                        zoom = min(32, zoom + 0.5)
+                        zoom = min(50, zoom + 2)
                     } label: {
                         Image(systemName: "plus.magnifyingglass")
                     }
                     .buttonStyle(.borderless)
-                    .disabled(zoom >= 32)
+                    .disabled(zoom >= 50)
                     .accessibilityLabel("Zoom in")
 
                     Text(String(format: "%.1f×", zoom))
@@ -73,6 +78,10 @@ struct WaveformEditorView: View {
     private var livePlaybackProgress: Double {
         guard let player, player.duration > 0 else { return 0 }
         return min(max(player.currentTime / player.duration, 0), 1)
+    }
+
+    private var maximumRMS: Float {
+        max(waveform.reduce(0) { max($0, $1.rms) }, 0.0001)
     }
 
     private func zoomedRange(for progress: Double) -> ClosedRange<Double> {
