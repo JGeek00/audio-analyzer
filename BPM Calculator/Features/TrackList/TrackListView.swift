@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct TrackListView: View {
@@ -5,17 +6,40 @@ struct TrackListView: View {
     @Binding var selection: AudioTrack.ID?
 
     var body: some View {
-        List(tracks, selection: $selection) { track in
-            VStack(alignment: .leading, spacing: 4) {
-                Text(track.title)
-                    .lineLimit(1)
+        Table(tracks, selection: $selection) {
+            TableColumn("Artwork") { track in
+                if let artwork = track.artwork, let image = NSImage(data: artwork) {
+                    Image(nsImage: image)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 28, height: 28)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                        .accessibilityLabel("Artwork")
+                } else {
+                    Image(systemName: "music.note")
+                        .frame(width: 28, height: 28)
+                        .foregroundStyle(.secondary)
+                        .accessibilityLabel("Artwork unavailable")
+                }
+            }
+            .width(min: 48, ideal: 64, max: 80)
 
-                Text(detail(for: track))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            TableColumn("Title", value: \.title)
+
+            TableColumn("Artist") { track in
+                Text(track.artist ?? "—")
                     .lineLimit(1)
             }
-            .tag(track.id)
+
+            TableColumn("Sample rate") { track in
+                Text(sampleRate(for: track))
+                    .monospacedDigit()
+            }
+
+            TableColumn("BPM") { track in
+                Text(bpm(for: track))
+                    .monospacedDigit()
+            }
         }
         .overlay {
             if tracks.isEmpty {
@@ -29,24 +53,18 @@ struct TrackListView: View {
         .navigationTitle("Tracks")
     }
 
-    private func detail(for track: AudioTrack) -> String {
-        switch track.analysisStatus {
-        case .queued:
-            return "Queued"
-        case .analyzing:
-            return "Analyzing…"
-        case .completed:
-            guard let analysis = track.analysis, analysis.hasDetectedBPM else {
-                return "BPM not detected"
-            }
-            return "\(analysis.bpm.formatted(.number.precision(.fractionLength(1)))) BPM"
-        case .failed(let message):
-            return "Error: \(message)"
-        }
+    private func sampleRate(for track: AudioTrack) -> String {
+        guard let sampleRate = track.analysis?.sampleRate else { return "—" }
+        return sampleRate.formatted() + " Hz"
+    }
+
+    private func bpm(for track: AudioTrack) -> String {
+        guard let analysis = track.analysis, analysis.hasDetectedBPM else { return "—" }
+        return analysis.bpm.formatted(.number.precision(.fractionLength(1)))
     }
 }
 
 #Preview {
     TrackListView(tracks: [], selection: .constant(nil))
-        .frame(width: 300, height: 500)
+        .frame(width: 900, height: 500)
 }

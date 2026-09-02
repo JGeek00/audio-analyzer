@@ -8,24 +8,34 @@ struct WorkspaceView: View {
     @State private var importErrorMessage = ""
 
     var body: some View {
-        NavigationSplitView {
+        VStack(spacing: 0) {
+            WaveformView(track: model.selectedTrack)
+                .frame(maxWidth: .infinity)
+                .frame(height: 200)
+
+            Divider()
+
+            HStack {
+                Text("Tracks")
+                    .font(.headline)
+
+                Spacer()
+
+                Button {
+                    isImporting = true
+                } label: {
+                    Label("Add tracks", systemImage: "plus")
+                }
+                .keyboardShortcut("o", modifiers: [.command])
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+
             TrackListView(
                 tracks: model.tracks,
                 selection: $model.selectedTrackID
             )
-            .navigationSplitViewColumnWidth(min: 240, ideal: 300)
-        } detail: {
-            WaveformView(track: model.selectedTrack)
-        }
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    isImporting = true
-                } label: {
-                    Label("Import tracks", systemImage: "plus")
-                }
-                .keyboardShortcut("o", modifiers: [.command])
-            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .fileImporter(
                 isPresented: $isImporting,

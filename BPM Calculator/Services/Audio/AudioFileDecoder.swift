@@ -1,6 +1,12 @@
 import AVFoundation
 import Foundation
 
+struct AudioFileMetadata: Sendable {
+    let title: String?
+    let artist: String?
+    let artwork: Data?
+}
+
 struct AudioFileDescription: Sendable {
     let sampleRate: Double
     let frameCount: AVAudioFramePosition
@@ -28,6 +34,36 @@ enum AudioFileDecoderError: LocalizedError {
 
 final class AudioFileDecoder {
     static let framesPerChunk: AVAudioFrameCount = 4_096
+
+    func metadata(for url: URL) async -> AudioFileMetadata {
+        let hasSecurityScope = url.startAccessingSecurityScopedResource()
+        defer {
+            if hasSecurityScope {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+
+        guard let metadata = try? await AVAsset(url: url).load(.commonMetadata) else {
+            return AudioFileMetadata(title: nil, artist: nil, artwork: nil)
+        }
+
+        func item(for key: AVMetadataKey) -> AVMetadataItem? {
+            AVMetadataItem.metadataItems(
+                from: metadata,
+                withKey: key,
+                keySpace: .common
+            ).first
+        }
+
+        let title = try? await item(for: .commonKeyTitle)?.load(.stringValue)
+        let artist = try? await item(for: .commonKeyArtist)?.load(.stringValue)
+        let artwork = try? await item(for: .commonKeyArtwork)?.load(.dataValue)
+        return AudioFileMetadata(
+            title: title ?? nil,
+            artist: artist ?? nil,
+            artwork: artwork ?? nil
+        )
+    }
 
     func forEachStereoChunk(
             in file: AVAudioFile,

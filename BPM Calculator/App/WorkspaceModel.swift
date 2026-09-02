@@ -32,6 +32,21 @@ final class WorkspaceModel {
 
         for track in newTracks {
             analyze(trackID: track.id)
+            loadMetadata(trackID: track.id)
+        }
+    }
+
+    private func loadMetadata(trackID: AudioTrack.ID) {
+        guard let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
+        let url = tracks[index].url
+
+        Task { [weak self] in
+            let metadata = await AudioFileDecoder().metadata(for: url)
+            guard let self,
+                  let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
+            tracks[index].metadataTitle = metadata.title
+            tracks[index].artist = metadata.artist
+            tracks[index].artwork = metadata.artwork
         }
     }
 
