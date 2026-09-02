@@ -5,6 +5,8 @@ struct WorkspaceView: View {
     @Bindable var model: WorkspaceModel
     @State private var isImporting = false
     @State private var isShowingImportError = false
+    @State private var isDropTargeted = false
+    @State private var errorTitle = ""
     @State private var importErrorMessage = ""
 
     var body: some View {
@@ -33,9 +35,25 @@ struct WorkspaceView: View {
 
             TrackListView(
                 tracks: model.tracks,
-                selection: $model.selectedTrackID
+                selection: $model.selectedTrackID,
+                onRemove: { model.removeTrack(id: $0) },
+                onSaveMetadata: saveMetadata(for:)
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .dropDestination(for: URL.self) { urls, _ in
+                model.importTracks(from: urls)
+                return true
+            } isTargeted: {
+                isDropTargeted = $0
+            }
+            .overlay {
+                if isDropTargeted {
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(.tint, lineWidth: 2)
+                        .padding(2)
+                        .allowsHitTesting(false)
+                }
+            }
         }
         .fileImporter(
                 isPresented: $isImporting,
@@ -45,14 +63,27 @@ struct WorkspaceView: View {
             case .success(let urls):
                 model.importTracks(from: urls)
             case .failure(let error):
+                errorTitle = "Could not import tracks"
                 importErrorMessage = error.localizedDescription
                 isShowingImportError = true
             }
         }
-        .alert("Could not import tracks", isPresented: $isShowingImportError) {
+        .alert(errorTitle, isPresented: $isShowingImportError) {
             Button("OK", role: .cancel) {}
         } message: {
             Text(importErrorMessage)
+        }
+    }
+
+    private func saveMetadata(for trackID: AudioTrack.ID) {
+        Task {
+            do {
+                try await model.saveMetadata(for: trackID)
+            } catch {
+                errorTitle = "Could not save metadata"
+                importErrorMessage = error.localizedDescription
+                isShowingImportError = true
+            }
         }
     }
 }

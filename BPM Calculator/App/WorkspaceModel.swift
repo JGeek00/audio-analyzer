@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import UniformTypeIdentifiers
 
 @Observable
 @MainActor
@@ -13,11 +14,36 @@ final class WorkspaceModel {
         tracks.first { $0.id == selectedTrackID }
     }
 
+    func removeTrack(id: AudioTrack.ID) {
+        guard let index = tracks.firstIndex(where: { $0.id == id }) else { return }
+        tracks.remove(at: index)
+        if selectedTrackID == id {
+            selectedTrackID = nil
+        }
+    }
+
+    func saveMetadata(for trackID: AudioTrack.ID) async throws {
+        guard let track = tracks.first(where: { $0.id == trackID }) else { return }
+        guard track.analysisStatus == .completed,
+              let analysis = track.analysis,
+              analysis.hasDetectedBPM else {
+            throw AudioMetadataWriterError.noDetectedBPM
+        }
+        try await AudioMetadataWriter().save(
+            title: track.title,
+            artist: track.artist,
+            bpm: analysis.bpm,
+            to: track.url
+        )
+    }
+
     func importTracks(from urls: [URL]) {
         var existingPaths = Set(
                 tracks.map { $0.url.resolvingSymlinksInPath().standardizedFileURL.path })
         let newURLs = urls.filter { url in
             guard url.isFileURL else { return false }
+            guard let contentType = UTType(filenameExtension: url.pathExtension),
+                  contentType.conforms(to: .audio) else { return false }
             let path = url.resolvingSymlinksInPath().standardizedFileURL.path
             guard existingPaths.insert(path).inserted else { return false }
             return true

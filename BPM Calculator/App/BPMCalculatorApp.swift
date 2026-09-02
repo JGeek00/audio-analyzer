@@ -7,7 +7,9 @@ struct BPMCalculatorApp: App {
     var body: some Scene {
         WindowGroup {
             WorkspaceView(model: workspace)
+                .frame(minWidth: 700, minHeight: 500)
         }
         .defaultSize(width: 1_100, height: 700)
+        .windowResizability(.contentMinSize)
     }
 }

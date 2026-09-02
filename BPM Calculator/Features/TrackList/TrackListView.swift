@@ -4,10 +4,13 @@ import SwiftUI
 struct TrackListView: View {
     let tracks: [AudioTrack]
     @Binding var selection: AudioTrack.ID?
+    let onRemove: (AudioTrack.ID) -> Void
+    let onSaveMetadata: (AudioTrack.ID) -> Void
+    @State private var sortOrder: [KeyPathComparator<AudioTrack>] = []
 
     var body: some View {
-        Table(tracks, selection: $selection) {
-            TableColumn("Artwork") { track in
+        Table(sortedTracks, selection: $selection, sortOrder: $sortOrder) {
+            TableColumn("Artwork", value: \.artworkSortValue) { track in
                 if let artwork = track.artwork, let image = NSImage(data: artwork) {
                     Image(nsImage: image)
                         .resizable()
@@ -26,17 +29,17 @@ struct TrackListView: View {
 
             TableColumn("Title", value: \.title)
 
-            TableColumn("Artist") { track in
+            TableColumn("Artist", value: \.artistName) { track in
                 Text(track.artist ?? "—")
                     .lineLimit(1)
             }
 
-            TableColumn("Sample rate") { track in
+            TableColumn("Sample rate", value: \.sampleRateValue) { track in
                 Text(sampleRate(for: track))
                     .monospacedDigit()
             }
 
-            TableColumn("BPM") { track in
+            TableColumn("BPM", value: \.bpmValue) { track in
                 Text(bpm(for: track))
                     .monospacedDigit()
             }
@@ -50,7 +53,36 @@ struct TrackListView: View {
                 )
             }
         }
+        .onDeleteCommand {
+            if let selection {
+                onRemove(selection)
+            }
+        }
+        .contextMenu(forSelectionType: AudioTrack.ID.self) { selectedIDs in
+            if let trackID = selectedIDs.first,
+               let track = tracks.first(where: { $0.id == trackID }) {
+                Section {
+                    Button(role: .destructive) {
+                        onRemove(trackID)
+                    } label: {
+                        Label("Remove", systemImage: "xmark")
+                    }
+                }
+                Section {
+                    Button {
+                        onSaveMetadata(trackID)
+                    } label: {
+                        Label("Save values to metadata", systemImage: "square.and.arrow.down")
+                    }
+                    .disabled(track.analysisStatus != .completed || track.analysis?.hasDetectedBPM != true)
+                }
+            }
+        }
         .navigationTitle("Tracks")
+    }
+
+    private var sortedTracks: [AudioTrack] {
+        tracks.sorted(using: sortOrder)
     }
 
     private func sampleRate(for track: AudioTrack) -> String {
@@ -65,6 +97,11 @@ struct TrackListView: View {
 }
 
 #Preview {
-    TrackListView(tracks: [], selection: .constant(nil))
+    TrackListView(
+        tracks: [],
+        selection: .constant(nil),
+        onRemove: { _ in },
+        onSaveMetadata: { _ in }
+    )
         .frame(width: 900, height: 500)
 }

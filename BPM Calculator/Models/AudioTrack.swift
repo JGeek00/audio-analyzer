@@ -51,4 +51,21 @@ struct AudioTrack: Identifiable, Hashable {
                 ? metadataTitle!
                 : url.deletingPathExtension().lastPathComponent
     }
+
+    var artistName: String {
+        artist ?? ""
+    }
+
+    var sampleRateValue: Double {
+        analysis?.sampleRate ?? 0
+    }
+
+    var bpmValue: Double {
+        guard let analysis, analysis.hasDetectedBPM else { return 0 }
+        return analysis.bpm
+    }
+
+    var artworkSortValue: String {
+        artwork == nil ? "" : "Artwork"
+    }
 }
