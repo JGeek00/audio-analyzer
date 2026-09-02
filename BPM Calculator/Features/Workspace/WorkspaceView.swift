@@ -3,7 +3,6 @@ import UniformTypeIdentifiers
 
 struct WorkspaceView: View {
     @Bindable var model: WorkspaceModel
-    @State private var isImporting = false
     @State private var isShowingImportError = false
     @State private var isDropTargeted = false
     @State private var errorTitle = ""
@@ -24,11 +23,10 @@ struct WorkspaceView: View {
                 Spacer()
 
                 Button {
-                    isImporting = true
+                    model.isImporting = true
                 } label: {
                     Label("Add tracks", systemImage: "plus")
                 }
-                .keyboardShortcut("o", modifiers: [.command])
             }
             .padding(.horizontal)
             .padding(.vertical, 8)
@@ -55,8 +53,12 @@ struct WorkspaceView: View {
                 }
             }
         }
+        .background {
+            MainWindowAccessor(model: model)
+                .frame(width: 0, height: 0)
+        }
         .fileImporter(
-                isPresented: $isImporting,
+                isPresented: $model.isImporting,
                 allowedContentTypes: [.audio],
                 allowsMultipleSelection: true) { result in
             switch result {

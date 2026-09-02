@@ -7,11 +7,27 @@ import UniformTypeIdentifiers
 final class WorkspaceModel {
     var tracks: [AudioTrack] = []
     var selectedTrackID: AudioTrack.ID?
+    var isImporting = false
 
     private let analysisService = TrackAnalysisService()
 
     var selectedTrack: AudioTrack? {
         tracks.first { $0.id == selectedTrackID }
+    }
+
+    var closeWarningMessage: String? {
+        let processingCount = tracks.filter(\.isProcessing).count
+        let unsavedBPMCount = tracks.filter(\.hasUnsavedBPM).count
+        guard processingCount > 0 || unsavedBPMCount > 0 else { return nil }
+
+        var messages: [String] = []
+        if processingCount > 0 {
+            messages.append("\(processingCount) track(s) are still being processed.")
+        }
+        if unsavedBPMCount > 0 {
+            messages.append("\(unsavedBPMCount) track(s) have BPM values that are not saved in metadata.")
+        }
+        return messages.joined(separator: "\n")
     }
 
     func removeTrack(id: AudioTrack.ID) {
@@ -35,6 +51,8 @@ final class WorkspaceModel {
             bpm: analysis.bpm,
             to: track.url
         )
+        guard let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
+        tracks[index].persistedBPM = analysis.bpm
     }
 
     func importTracks(from urls: [URL]) {
@@ -73,6 +91,9 @@ final class WorkspaceModel {
             tracks[index].metadataTitle = metadata.title
             tracks[index].artist = metadata.artist
             tracks[index].artwork = metadata.artwork
+            if tracks[index].persistedBPM == nil {
+                tracks[index].persistedBPM = metadata.bpm
+            }
         }
     }
 

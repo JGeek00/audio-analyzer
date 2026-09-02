@@ -45,7 +45,10 @@ final class AudioMetadataWriter {
 
         var outputMetadata = metadata
         outputMetadata.removeAll { item in
-            item.identifier == .commonIdentifierTitle || item.identifier == .commonIdentifierArtist
+            item.identifier == .commonIdentifierTitle
+                || item.identifier == .commonIdentifierArtist
+                || item.identifier == .id3MetadataBeatsPerMinute
+                || item.identifier == .iTunesMetadataBeatsPerMin
         }
         outputMetadata.append(metadataItem(identifier: .commonIdentifierTitle, value: title))
         if let artist, !artist.isEmpty {

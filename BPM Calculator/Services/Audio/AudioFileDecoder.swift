@@ -5,6 +5,7 @@ struct AudioFileMetadata: Sendable {
     let title: String?
     let artist: String?
     let artwork: Data?
+    let bpm: Double?
 }
 
 struct AudioFileDescription: Sendable {
@@ -43,9 +44,11 @@ final class AudioFileDecoder {
             }
         }
 
-        guard let metadata = try? await AVAsset(url: url).load(.commonMetadata) else {
-            return AudioFileMetadata(title: nil, artist: nil, artwork: nil)
+        let asset = AVAsset(url: url)
+        guard let commonMetadata = try? await asset.load(.commonMetadata) else {
+            return AudioFileMetadata(title: nil, artist: nil, artwork: nil, bpm: nil)
         }
+        let metadata = (try? await asset.load(.metadata)) ?? commonMetadata
 
         func item(for key: AVMetadataKey) -> AVMetadataItem? {
             AVMetadataItem.metadataItems(
@@ -58,10 +61,20 @@ final class AudioFileDecoder {
         let title = try? await item(for: .commonKeyTitle)?.load(.stringValue)
         let artist = try? await item(for: .commonKeyArtist)?.load(.stringValue)
         let artwork = try? await item(for: .commonKeyArtwork)?.load(.dataValue)
+        let bpmItem = metadata.first {
+            $0.identifier == .id3MetadataBeatsPerMinute
+                || $0.identifier == .iTunesMetadataBeatsPerMin
+        }
+        let bpm: Double? = if let bpmItem {
+            (try? await bpmItem.load(.numberValue))?.doubleValue
+        } else {
+            nil
+        }
         return AudioFileMetadata(
             title: title ?? nil,
             artist: artist ?? nil,
-            artwork: artwork ?? nil
+            artwork: artwork ?? nil,
+            bpm: bpm
         )
     }
 

@@ -27,6 +27,7 @@ struct AudioTrack: Identifiable, Hashable {
     var artist: String?
     var artwork: Data?
     var analysis: BPMAnalysisResult?
+    var persistedBPM: Double?
     var analysisStatus: TrackAnalysisStatus = .queued
 
     init(
@@ -36,6 +37,7 @@ struct AudioTrack: Identifiable, Hashable {
             artist: String? = nil,
             artwork: Data? = nil,
             analysis: BPMAnalysisResult? = nil,
+            persistedBPM: Double? = nil,
             analysisStatus: TrackAnalysisStatus = .queued) {
         self.id = id
         self.url = url
@@ -43,6 +45,7 @@ struct AudioTrack: Identifiable, Hashable {
         self.artist = artist
         self.artwork = artwork
         self.analysis = analysis
+        self.persistedBPM = persistedBPM
         self.analysisStatus = analysisStatus
     }
 
@@ -67,5 +70,22 @@ struct AudioTrack: Identifiable, Hashable {
 
     var artworkSortValue: String {
         artwork == nil ? "" : "Artwork"
+    }
+
+    var isProcessing: Bool {
+        switch analysisStatus {
+        case .queued, .analyzing:
+            true
+        case .completed, .failed:
+            false
+        }
+    }
+
+    var hasUnsavedBPM: Bool {
+        guard analysisStatus == .completed,
+              let analysis,
+              analysis.hasDetectedBPM else { return false }
+        guard let persistedBPM, persistedBPM.isFinite, persistedBPM > 0 else { return true }
+        return abs(persistedBPM - analysis.bpm) > 0.05
     }
 }
