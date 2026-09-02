@@ -13,7 +13,7 @@ struct WorkspaceView: View {
         VStack(spacing: 0) {
             WaveformView(track: model.selectedTrack)
                 .frame(maxWidth: .infinity)
-                .frame(height: 200)
+                .frame(height: 260)
 
             Divider()
 

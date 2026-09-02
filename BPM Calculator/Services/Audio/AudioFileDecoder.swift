@@ -1,4 +1,4 @@
-import AVFoundation
+@preconcurrency import AVFoundation
 import Foundation
 
 struct AudioFileMetadata: Sendable {
@@ -11,6 +11,12 @@ struct AudioFileMetadata: Sendable {
 struct AudioFileDescription: Sendable {
     let sampleRate: Double
     let frameCount: AVAudioFramePosition
+}
+
+struct WaveformPeak: Hashable, Sendable {
+    let min: Float
+    let max: Float
+    let rms: Float
 }
 
 enum AudioFileDecoderError: LocalizedError {
@@ -34,7 +40,15 @@ enum AudioFileDecoderError: LocalizedError {
 }
 
 final class AudioFileDecoder {
-    static let framesPerChunk: AVAudioFrameCount = 4_096
+    nonisolated static let framesPerChunk: AVAudioFrameCount = 4_096
+
+    nonisolated init() {}
+
+    func waveform(for url: URL, bucketCount: Int = 120_000) async throws -> [WaveformPeak] {
+        try await Task.detached(priority: .userInitiated) {
+            try Self.waveformSynchronously(for: url, bucketCount: bucketCount)
+        }.value
+    }
 
     func metadata(for url: URL) async -> AudioFileMetadata {
         let hasSecurityScope = url.startAccessingSecurityScopedResource()
@@ -78,7 +92,7 @@ final class AudioFileDecoder {
         )
     }
 
-    func forEachStereoChunk(
+    nonisolated func forEachStereoChunk(
             in file: AVAudioFile,
             onChunk: (Data, Double) throws -> Void) throws -> AudioFileDescription {
         let sourceFormat = file.processingFormat
@@ -173,7 +187,7 @@ final class AudioFileDecoder {
         return AudioFileDescription(sampleRate: sampleRate, frameCount: totalFrames)
     }
 
-    private func interleavedFloat32Data(from buffer: AVAudioPCMBuffer) throws -> Data {
+    nonisolated private func interleavedFloat32Data(from buffer: AVAudioPCMBuffer) throws -> Data {
         guard buffer.format.channelCount >= 2,
               let channelData = buffer.floatChannelData else {
             throw AudioFileDecoderError.invalidFormat
@@ -189,5 +203,66 @@ final class AudioFileDecoder {
             samples.append(right[frame])
         }
         return samples.withUnsafeBytes { Data($0) }
+    }
+
+    nonisolated private static func waveformSynchronously(
+            for url: URL,
+            bucketCount: Int) throws -> [WaveformPeak] {
+        guard bucketCount > 0 else { return [] }
+
+        let hasSecurityScope = url.startAccessingSecurityScopedResource()
+        defer {
+            if hasSecurityScope {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+
+        let file = try AVAudioFile(forReading: url)
+        let totalFrames = max(file.length, 1)
+        var minimums = Array(repeating: Float.infinity, count: bucketCount)
+        var maximums = Array(repeating: -Float.infinity, count: bucketCount)
+        var squaredSums = Array(repeating: Float.zero, count: bucketCount)
+        var sampleCounts = Array(repeating: 0, count: bucketCount)
+        var frameOffset: Int64 = 0
+
+        _ = try AudioFileDecoder().forEachStereoChunk(in: file) { data, _ in
+            data.withUnsafeBytes { rawBuffer in
+                let samples = rawBuffer.bindMemory(to: Float.self)
+                let frameCount = samples.count / 2
+
+                for frame in 0..<frameCount {
+                    let left = samples[frame * 2]
+                    let right = samples[frame * 2 + 1]
+                    guard left.isFinite, right.isFinite else { continue }
+
+                    let bucket = min(
+                        bucketCount - 1,
+                        Int(
+                            Double(frameOffset + Int64(frame))
+                                / Double(totalFrames)
+                                * Double(bucketCount)
+                        )
+                    )
+                    minimums[bucket] = min(minimums[bucket], left, right)
+                    maximums[bucket] = max(maximums[bucket], left, right)
+                    squaredSums[bucket] += (left * left + right * right) / 2
+                    sampleCounts[bucket] += 1
+                }
+                frameOffset += Int64(frameCount)
+            }
+        }
+
+        return (0..<bucketCount).map { bucket in
+            guard minimums[bucket].isFinite,
+                  maximums[bucket].isFinite,
+                  sampleCounts[bucket] > 0 else {
+                return WaveformPeak(min: 0, max: 0, rms: 0)
+            }
+            return WaveformPeak(
+                min: minimums[bucket],
+                max: maximums[bucket],
+                rms: sqrt(squaredSums[bucket] / Float(sampleCounts[bucket]))
+            )
+        }
     }
 }
