@@ -5,6 +5,7 @@ struct PreferencesView: View {
     @AppStorage(AppStorageKeys.waveformDimming) private var waveformDimming = AppConfiguration.defaultWaveformDimming.rawValue
     @AppStorage(AppStorageKeys.showBeatMarkers) private var showBeatMarkers = AppConfiguration.defaultShowBeatMarkers
     @AppStorage(AppStorageKeys.lowPerformanceMode) private var lowPerformanceMode = AppConfiguration.defaultLowPerformanceMode
+    @AppStorage(AppStorageKeys.autoSave) private var autoSave = AppConfiguration.defaultAutoSave
 
     private var selectedTheme: AppTheme {
         AppTheme(rawValue: theme) ?? AppConfiguration.defaultTheme
@@ -12,13 +13,20 @@ struct PreferencesView: View {
 
     var body: some View {
         Form {
-            Section("General") {
+            Section {
                 Picker("Theme", selection: $theme) {
                     ForEach(AppTheme.allCases) { theme in
                         Text(theme.label).tag(theme.rawValue)
                     }
                 }
                 .pickerStyle(.radioGroup)
+
+                Toggle("Auto save", isOn: $autoSave)
+                    .help("Automatically saves calculated and manually adjusted BPM values to metadata.")
+            } header: {
+                Text("General")
+            } footer: {
+                Text("Automatically saves calculated BPM after analysis and manually adjusted BPM after each change.")
             }
 
             Section {

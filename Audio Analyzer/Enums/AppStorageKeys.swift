@@ -3,4 +3,5 @@ enum AppStorageKeys {
     static let waveformDimming = "waveformDimming"
     static let showBeatMarkers = "showBeatMarkers"
     static let lowPerformanceMode = "lowPerformanceMode"
+    static let autoSave = "autoSave"
 }

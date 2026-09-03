@@ -122,6 +122,13 @@ struct WorkspaceView: View {
         } message: {
             Text(importErrorMessage)
         }
+        .onChange(of: model.autoSaveErrorMessage) { _, message in
+            guard let message else { return }
+            errorTitle = "Could not save metadata"
+            importErrorMessage = message
+            isShowingImportError = true
+            model.autoSaveErrorMessage = nil
+        }
     }
 
     private func saveMetadata(for trackID: AudioTrack.ID, scope: TrackValueScope) {

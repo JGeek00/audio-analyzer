@@ -16,6 +16,7 @@
 - Play and pause tracks, seek to any position, and adjust the zoom level.
 - Adjust detected BPM to one half, 2/3, 3/4, 4/3, 3/2, or double.
 - Explicitly save the BPM value to the file's metadata.
+- Optionally save calculated and manually adjusted BPM values automatically.
 - Choose a light, dark, or system theme, and configure waveform dimming, beat markers, and low-performance mode.
 
 ## Quick start

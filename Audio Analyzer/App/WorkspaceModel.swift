@@ -8,6 +8,7 @@ final class WorkspaceModel {
     var tracks: [AudioTrack] = []
     var selectedTrackID: AudioTrack.ID?
     var isImporting = false
+    var autoSaveErrorMessage: String?
 
     private let analysisService = TrackAnalysisService()
 
@@ -23,6 +24,10 @@ final class WorkspaceModel {
         !tracks.isEmpty && tracks.allSatisfy {
             $0.analysisStatus == .completed && $0.analysis?.hasDetectedBPM == true
         }
+    }
+
+    private var isAutoSaveEnabled: Bool {
+        UserDefaults.standard.bool(forKey: AppStorageKeys.autoSave)
     }
 
     var closeWarningMessage: String? {
@@ -66,6 +71,7 @@ final class WorkspaceModel {
             rawBeatFrames: analysis.rawBeatFrames
         )
         tracks[index].hasManuallyAdjustedBPM = true
+        saveAutomatically(for: trackID, scope: .bpm)
     }
 
     func saveMetadata(for trackID: AudioTrack.ID, scope: TrackValueScope = .all) async throws {
@@ -87,6 +93,22 @@ final class WorkspaceModel {
     func saveMetadata(for scope: TrackValueScope) async throws {
         for trackID in tracks.map(\.id) {
             try await saveMetadata(for: trackID, scope: scope)
+        }
+    }
+
+    private func saveAutomatically(for trackID: AudioTrack.ID, scope: TrackValueScope) {
+        guard isAutoSaveEnabled,
+              let track = tracks.first(where: { $0.id == trackID }),
+              track.analysisStatus == .completed,
+              track.analysis?.hasDetectedBPM == true else { return }
+
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                try await saveMetadata(for: trackID, scope: scope)
+            } catch {
+                autoSaveErrorMessage = error.localizedDescription
+            }
         }
     }
 
@@ -156,6 +178,7 @@ final class WorkspaceModel {
                 guard let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
                 tracks[index].analysis = result
                 tracks[index].analysisStatus = .completed
+                saveAutomatically(for: trackID, scope: .all)
             } catch is CancellationError {
                 guard let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
                 tracks[index].analysisStatus = .queued
