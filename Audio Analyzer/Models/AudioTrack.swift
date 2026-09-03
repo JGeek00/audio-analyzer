@@ -69,6 +69,16 @@ struct AudioTrack: Identifiable, Hashable {
               let analysis,
               analysis.hasDetectedBPM else { return false }
         guard let persistedBPM, persistedBPM.isFinite, persistedBPM > 0 else { return true }
+        return hasPersistedBPMConflict
+    }
+
+    var hasPersistedBPMConflict: Bool {
+        guard analysisStatus == .completed,
+              let analysis,
+              analysis.hasDetectedBPM,
+              let persistedBPM,
+              persistedBPM.isFinite,
+              persistedBPM > 0 else { return false }
         return abs(persistedBPM - analysis.bpm) > 0.05
     }
 }

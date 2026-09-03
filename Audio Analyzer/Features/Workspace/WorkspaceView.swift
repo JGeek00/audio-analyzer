@@ -39,6 +39,25 @@ struct WorkspaceView: View {
                     Label("Clear tracks", systemImage: "trash")
                 }
                 .disabled(model.tracks.isEmpty)
+
+                Divider()
+                    .frame(height: 20)
+
+                Menu {
+                    Section {
+                        Button(TrackValueScope.all.rawValue) {
+                            saveMetadata(for: .all)
+                        }
+                    }
+                    Section {
+                        Button(TrackValueScope.bpm.rawValue) {
+                            saveMetadata(for: .bpm)
+                        }
+                    }
+                } label: {
+                    Label("Save...", systemImage: "square.and.arrow.down")
+                }
+                .disabled(!model.canSaveMetadata)
             }
             .padding(.horizontal)
             .padding(.vertical, 8)
@@ -58,7 +77,12 @@ struct WorkspaceView: View {
                 onAdjustBPM: { trackID, adjustment in
                     model.adjustBPM(for: trackID, using: adjustment)
                 },
-                onSaveMetadata: saveMetadata(for:)
+                onSaveMetadata: { trackID, scope in
+                    saveMetadata(for: trackID, scope: scope)
+                },
+                onRecalculate: { trackID, scope in
+                    model.recalculate(for: trackID, scope: scope)
+                }
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .dropDestination(for: URL.self) { urls, _ in
@@ -100,16 +124,30 @@ struct WorkspaceView: View {
         }
     }
 
-    private func saveMetadata(for trackID: AudioTrack.ID) {
+    private func saveMetadata(for trackID: AudioTrack.ID, scope: TrackValueScope) {
         Task {
             do {
-                try await model.saveMetadata(for: trackID)
+                try await model.saveMetadata(for: trackID, scope: scope)
             } catch {
-                errorTitle = "Could not save metadata"
-                importErrorMessage = error.localizedDescription
-                isShowingImportError = true
+                showSaveError(error)
             }
         }
+    }
+
+    private func saveMetadata(for scope: TrackValueScope) {
+        Task {
+            do {
+                try await model.saveMetadata(for: scope)
+            } catch {
+                showSaveError(error)
+            }
+        }
+    }
+
+    private func showSaveError(_ error: Error) {
+        errorTitle = "Could not save metadata"
+        importErrorMessage = error.localizedDescription
+        isShowingImportError = true
     }
 }
 

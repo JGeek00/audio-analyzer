@@ -19,6 +19,12 @@ final class WorkspaceModel {
         tracks.contains(where: \.hasUnsavedBPM)
     }
 
+    var canSaveMetadata: Bool {
+        !tracks.isEmpty && tracks.allSatisfy {
+            $0.analysisStatus == .completed && $0.analysis?.hasDetectedBPM == true
+        }
+    }
+
     var closeWarningMessage: String? {
         let processingCount = tracks.filter(\.isProcessing).count
         let unsavedBPMCount = tracks.filter(\.hasUnsavedBPM).count
@@ -62,7 +68,7 @@ final class WorkspaceModel {
         tracks[index].hasManuallyAdjustedBPM = true
     }
 
-    func saveMetadata(for trackID: AudioTrack.ID) async throws {
+    func saveMetadata(for trackID: AudioTrack.ID, scope: TrackValueScope = .all) async throws {
         guard let track = tracks.first(where: { $0.id == trackID }) else { return }
         guard track.analysisStatus == .completed,
               let analysis = track.analysis,
@@ -71,10 +77,29 @@ final class WorkspaceModel {
         }
         try await AudioMetadataWriter().save(
             bpm: analysis.bpm,
-            to: track.url
+            to: track.url,
+            scope: scope
         )
         guard let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
         tracks[index].persistedBPM = analysis.bpm
+    }
+
+    func saveMetadata(for scope: TrackValueScope) async throws {
+        for trackID in tracks.map(\.id) {
+            try await saveMetadata(for: trackID, scope: scope)
+        }
+    }
+
+    func recalculate(for trackID: AudioTrack.ID, scope: TrackValueScope) {
+        guard let index = tracks.firstIndex(where: { $0.id == trackID }),
+              tracks[index].analysisStatus != .analyzing else { return }
+
+        // ponytail: BPM is the only calculation today; both scopes share the existing analyzer.
+        tracks[index].hasManuallyAdjustedBPM = false
+        switch scope {
+        case .all, .bpm:
+            analyze(trackID: trackID)
+        }
     }
 
     func importTracks(from urls: [URL]) {

@@ -2,7 +2,7 @@ import AVFoundation
 import Foundation
 
 final class AudioMetadataWriter {
-    func save(bpm: Double, to url: URL) async throws {
+    func save(bpm: Double, to url: URL, scope: TrackValueScope = .all) async throws {
         let hasSecurityScope = url.startAccessingSecurityScopedResource()
         defer {
             if hasSecurityScope {
@@ -28,6 +28,7 @@ final class AudioMetadataWriter {
             throw AudioMetadataWriterError.unsupportedFileType(url.pathExtension)
         }
 
+        _ = scope
         var outputMetadata = metadata
         outputMetadata.removeAll { item in
             item.identifier == .id3MetadataBeatsPerMinute

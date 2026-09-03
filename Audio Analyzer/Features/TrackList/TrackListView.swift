@@ -6,25 +6,36 @@ struct TrackListView: View {
     @Binding var selection: AudioTrack.ID?
     let onRemove: (AudioTrack.ID) -> Void
     let onAdjustBPM: (AudioTrack.ID, BPMAdjustment) -> Void
-    let onSaveMetadata: (AudioTrack.ID) -> Void
+    let onSaveMetadata: (AudioTrack.ID, TrackValueScope) -> Void
+    let onRecalculate: (AudioTrack.ID, TrackValueScope) -> Void
     @State private var sortOrder: [KeyPathComparator<AudioTrack>] = []
 
     var body: some View {
         Table(sortedTracks, selection: $selection, sortOrder: $sortOrder) {
             TableColumn("Artwork") { track in
-                if let artwork = track.artwork, let image = NSImage(data: artwork) {
-                    Image(nsImage: image)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 28, height: 28)
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
-                        .accessibilityLabel("Artwork")
-                } else {
-                    Image(systemName: "music.note")
-                        .frame(width: 28, height: 28)
-                        .foregroundStyle(.secondary)
-                        .accessibilityLabel("Artwork unavailable")
+                ZStack {
+                    if let artwork = track.artwork, let image = NSImage(data: artwork) {
+                        Image(nsImage: image)
+                            .resizable()
+                            .scaledToFit()
+                            .accessibilityLabel("Artwork")
+                    } else {
+                        Image(systemName: "music.note")
+                            .foregroundStyle(.secondary)
+                            .accessibilityLabel("Artwork unavailable")
+                    }
+
+                    if track.isProcessing {
+                        Rectangle()
+                            .fill(.black.opacity(0.75))
+                        ProgressView()
+                            .controlSize(.small)
+                            .tint(.white)
+                            .accessibilityLabel("Calculating BPM")
+                    }
                 }
+                .frame(width: 28, height: 28)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
             }
             .width(min: 48, ideal: 48, max: 48)
 
@@ -42,8 +53,17 @@ struct TrackListView: View {
 
             TableColumn("BPM", value: \.bpmValue) { track in
                 HStack(spacing: 6) {
-                    Text(bpm(for: track))
-                        .monospacedDigit()
+                    if track.hasPersistedBPMConflict, let persistedBPM = track.persistedBPM {
+                        Text(bpmLabel(persistedBPM))
+                            .strikethrough()
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                        Text(bpm(for: track))
+                            .monospacedDigit()
+                    } else {
+                        Text(bpm(for: track))
+                            .monospacedDigit()
+                    }
 
                     if track.hasUnsavedBPM && !track.hasManuallyAdjustedBPM {
                         Image(systemName: "exclamationmark.triangle.fill")
@@ -89,10 +109,34 @@ struct TrackListView: View {
                     .disabled(track.analysisStatus != .completed || track.analysis?.hasDetectedBPM != true)
                 }
                 Section {
-                    Button {
-                        onSaveMetadata(trackID)
+                    Menu {
+                        Section {
+                            Button(TrackValueScope.all.rawValue) {
+                                onRecalculate(trackID, .all)
+                            }
+                        }
+                        Section {
+                            Button(TrackValueScope.bpm.rawValue) {
+                                onRecalculate(trackID, .bpm)
+                            }
+                        }
                     } label: {
-                        Label("Save values to metadata", systemImage: "square.and.arrow.down")
+                        Label("Recalculate...", systemImage: "arrow.circlepath")
+                    }
+                    .disabled(track.analysisStatus == .analyzing)
+                    Menu {
+                        Section {
+                            Button(TrackValueScope.all.rawValue) {
+                                onSaveMetadata(trackID, .all)
+                            }
+                        }
+                        Section {
+                            Button(TrackValueScope.bpm.rawValue) {
+                                onSaveMetadata(trackID, .bpm)
+                            }
+                        }
+                    } label: {
+                        Label("Save metadata values...", systemImage: "square.and.arrow.down")
                     }
                     .disabled(track.analysisStatus != .completed || track.analysis?.hasDetectedBPM != true)
                 }
@@ -119,7 +163,11 @@ struct TrackListView: View {
 
     private func bpm(for track: AudioTrack) -> String {
         guard let analysis = track.analysis, analysis.hasDetectedBPM else { return "—" }
-        return analysis.bpm.formatted(.number.precision(.fractionLength(1)))
+        return bpmLabel(analysis.bpm)
+    }
+
+    private func bpmLabel(_ bpm: Double) -> String {
+        bpm.formatted(.number.precision(.fractionLength(1)))
     }
 }
 
@@ -129,7 +177,8 @@ struct TrackListView: View {
         selection: .constant(nil),
         onRemove: { _ in },
         onAdjustBPM: { _, _ in },
-        onSaveMetadata: { _ in }
+        onSaveMetadata: { _, _ in },
+        onRecalculate: { _, _ in }
     )
         .frame(width: 900, height: 500)
 }

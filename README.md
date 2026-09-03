@@ -25,7 +25,7 @@
 3. Wait for the analysis to finish.
 4. Select a track to view and play its waveform.
 5. To correct the tempo, open the track's context menu and choose **Modify BPM**.
-6. Choose **Save values to metadata** to write the BPM to the file.
+6. Choose **Save metadata values...** → **BPM** to write the BPM to the file.
 
 Analysis runs on the complete file and is independent of playback. Files are
 not modified automatically: metadata is written only when you choose the save
