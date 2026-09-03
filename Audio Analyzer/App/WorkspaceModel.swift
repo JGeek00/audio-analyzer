@@ -12,6 +12,10 @@ final class WorkspaceModel {
 
     private let analysisService = TrackAnalysisService()
 
+    init() {
+        observeReplayGainSettings()
+    }
+
     var selectedTrack: AudioTrack? {
         tracks.first { $0.id == selectedTrackID }
     }
@@ -36,6 +40,27 @@ final class WorkspaceModel {
 
     private var isAutoSaveEnabled: Bool {
         UserDefaults.standard.bool(forKey: AppStorageKeys.autoSave)
+    }
+
+    private func observeReplayGainSettings() {
+        Task { [weak self] in
+            for await _ in NotificationCenter.default.notifications(
+                named: UserDefaults.didChangeNotification) {
+                self?.refreshReplayGainGains()
+            }
+        }
+    }
+
+    private func refreshReplayGainGains() {
+        let settings = ReplayGainSettings.current()
+        for index in tracks.indices {
+            guard let analysis = tracks[index].replayGainAnalysis,
+                  analysis.hasDetectedGain else { continue }
+            let updated = analysis.applying(settings, for: tracks[index].url)
+            if updated != tracks[index].replayGainAnalysis {
+                tracks[index].replayGainAnalysis = updated
+            }
+        }
     }
 
     var closeWarningMessage: String? {

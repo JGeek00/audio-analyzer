@@ -6,4 +6,15 @@ enum ReplayGainClipMode: String, CaseIterable, Identifiable, Sendable {
     case always = "Always"
 
     var id: Self { self }
+
+    var label: String {
+        switch self {
+        case .disabled:
+            "Disabled"
+        case .positiveOnly:
+            "Enabled for positive gain values only"
+        case .always:
+            "Enabled for all tracks"
+        }
+    }
 }
