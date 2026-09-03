@@ -53,17 +53,15 @@ struct TrackListView: View {
 
             TableColumn("BPM", value: \.bpmValue) { track in
                 HStack(spacing: 6) {
-                    if track.hasPersistedBPMConflict, let persistedBPM = track.persistedBPM {
-                        Text(bpmLabel(persistedBPM))
-                            .strikethrough()
-                            .foregroundStyle(.secondary)
-                            .monospacedDigit()
-                        Text(bpm(for: track))
-                            .monospacedDigit()
-                    } else {
-                        Text(bpm(for: track))
-                            .monospacedDigit()
-                    }
+                    MetadataValueView(
+                        persistedValue: track.persistedBPM,
+                        calculatedValue: track.analysis?.hasDetectedBPM == true
+                                ? track.analysis?.bpm
+                                : nil,
+                        hasConflict: track.hasPersistedBPMConflict,
+                        format: bpmLabel
+                    )
+                    .monospacedDigit()
 
                     if track.hasUnsavedBPM && !track.hasManuallyAdjustedBPM {
                         Image(systemName: "exclamationmark.triangle.fill")
@@ -82,7 +80,23 @@ struct TrackListView: View {
             }
 
             TableColumn("Key", value: \.keyValue) { track in
-                Text(key(for: track))
+                HStack(spacing: 6) {
+                    MetadataValueView(
+                        persistedValue: track.persistedKey,
+                        calculatedValue: track.keyAnalysis?.hasDetectedKey == true
+                                ? track.keyAnalysis?.keyText
+                                : nil,
+                        hasConflict: track.hasPersistedKeyConflict,
+                        format: { $0 }
+                    )
+
+                    if track.hasPersistedKeyConflict {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.orange)
+                            .help("Calculated key differs from metadata")
+                            .accessibilityLabel("Calculated key differs from metadata")
+                    }
+                }
             }
         }
         .overlay {
@@ -122,6 +136,9 @@ struct TrackListView: View {
                         Section {
                             Button(TrackValueScope.bpm.rawValue) {
                                 onRecalculate(trackID, .bpm)
+                            }
+                            Button(TrackValueScope.key.rawValue) {
+                                onRecalculate(trackID, .key)
                             }
                         }
                     } label: {
@@ -173,18 +190,8 @@ struct TrackListView: View {
         return sampleRate.formatted() + " Hz"
     }
 
-    private func bpm(for track: AudioTrack) -> String {
-        guard let analysis = track.analysis, analysis.hasDetectedBPM else { return "—" }
-        return bpmLabel(analysis.bpm)
-    }
-
     private func bpmLabel(_ bpm: Double) -> String {
         bpm.formatted(.number.precision(.fractionLength(1)))
-    }
-
-    private func key(for track: AudioTrack) -> String {
-        guard track.keyAnalysis?.hasDetectedKey == true else { return "—" }
-        return track.keyAnalysis!.keyText
     }
 }
 

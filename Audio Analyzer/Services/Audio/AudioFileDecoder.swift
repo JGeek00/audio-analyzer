@@ -6,6 +6,7 @@ struct AudioFileMetadata: Sendable {
     let artist: String?
     let artwork: Data?
     let bpm: Double?
+    let key: String?
 }
 
 struct AudioFileDescription: Sendable {
@@ -40,7 +41,7 @@ final class AudioFileDecoder {
 
         let asset = AVAsset(url: url)
         guard let commonMetadata = try? await asset.load(.commonMetadata) else {
-            return AudioFileMetadata(title: nil, artist: nil, artwork: nil, bpm: nil)
+            return AudioFileMetadata(title: nil, artist: nil, artwork: nil, bpm: nil, key: nil)
         }
         let metadata = (try? await asset.load(.metadata)) ?? commonMetadata
 
@@ -64,11 +65,47 @@ final class AudioFileDecoder {
         } else {
             nil
         }
+        let keyIdentifiers = [
+            AVMetadataIdentifier(rawValue: "id3/TKEY"),
+            AVMetadataIdentifier(rawValue: "itlk/com.apple.iTunes.initialkey"),
+            AVMetadataIdentifier(rawValue: "itsk/%A9key"),
+            AVMetadataIdentifier(rawValue: "caaf/IKEY"),
+            AVMetadataIdentifier(rawValue: "vorb/KEY"),
+            AVMetadataIdentifier(rawValue: "vorb/INITIALKEY"),
+            AVMetadataIdentifier(rawValue: "vorbis/KEY"),
+            AVMetadataIdentifier(rawValue: "vorbis/INITIALKEY")
+        ]
+        let directKeyItem = metadata.first { item in
+            if let identifier = item.identifier, keyIdentifiers.contains(identifier) {
+                return true
+            }
+            return false
+        }
+        let keyItem: AVMetadataItem?
+        if let directKeyItem {
+            keyItem = directKeyItem
+        } else {
+            var customKeyItem: AVMetadataItem?
+            for item in metadata where item.identifier == AVMetadataIdentifier(rawValue: "id3/TXXX") {
+                guard let attributes = try? await item.load(.extraAttributes),
+                      let info = attributes[.info] as? String,
+                      ["KEY", "INITIALKEY"].contains(info.uppercased()) else { continue }
+                customKeyItem = item
+                break
+            }
+            keyItem = customKeyItem
+        }
+        let key: String? = if let keyItem {
+            (try? await keyItem.load(.stringValue)) ?? nil
+        } else {
+            nil
+        }
         return AudioFileMetadata(
             title: title ?? nil,
             artist: artist ?? nil,
             artwork: artwork ?? nil,
-            bpm: bpm
+            bpm: bpm,
+            key: key
         )
     }
 

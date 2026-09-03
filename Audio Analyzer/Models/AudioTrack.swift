@@ -9,6 +9,7 @@ struct AudioTrack: Identifiable, Hashable {
     var analysis: BPMAnalysisResult?
     var keyAnalysis: KeyAnalysisResult?
     var persistedBPM: Double?
+    var persistedKey: String?
     var analysisStatus: TrackAnalysisStatus = .queued
     var hasManuallyAdjustedBPM = false
 
@@ -21,6 +22,7 @@ struct AudioTrack: Identifiable, Hashable {
             analysis: BPMAnalysisResult? = nil,
             keyAnalysis: KeyAnalysisResult? = nil,
             persistedBPM: Double? = nil,
+            persistedKey: String? = nil,
             analysisStatus: TrackAnalysisStatus = .queued,
             hasManuallyAdjustedBPM: Bool = false) {
         self.id = id
@@ -31,6 +33,7 @@ struct AudioTrack: Identifiable, Hashable {
         self.analysis = analysis
         self.keyAnalysis = keyAnalysis
         self.persistedBPM = persistedBPM
+        self.persistedKey = persistedKey
         self.analysisStatus = analysisStatus
         self.hasManuallyAdjustedBPM = hasManuallyAdjustedBPM
     }
@@ -87,5 +90,17 @@ struct AudioTrack: Identifiable, Hashable {
               persistedBPM.isFinite,
               persistedBPM > 0 else { return false }
         return abs(persistedBPM - analysis.bpm) > 0.05
+    }
+
+    var hasPersistedKeyConflict: Bool {
+        guard analysisStatus == .completed,
+              let keyAnalysis,
+              keyAnalysis.hasDetectedKey,
+              let persistedKey,
+              !persistedKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return false
+        }
+        return persistedKey.trimmingCharacters(in: .whitespacesAndNewlines)
+            .caseInsensitiveCompare(keyAnalysis.keyText) != .orderedSame
     }
 }

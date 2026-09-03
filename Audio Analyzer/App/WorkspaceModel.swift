@@ -114,6 +114,9 @@ final class WorkspaceModel {
         if scope == .all || scope == .bpm, let bpm {
             tracks[index].persistedBPM = bpm
         }
+        if scope == .all || scope == .key, let key {
+            tracks[index].persistedKey = key
+        }
     }
 
     func saveMetadata(for scope: TrackValueScope) async throws {
@@ -152,11 +155,10 @@ final class WorkspaceModel {
         guard let index = tracks.firstIndex(where: { $0.id == trackID }),
               tracks[index].analysisStatus != .analyzing else { return }
 
-        tracks[index].hasManuallyAdjustedBPM = false
-        switch scope {
-        case .all, .bpm, .key:
-            analyze(trackID: trackID)
+        if scope == .all || scope == .bpm {
+            tracks[index].hasManuallyAdjustedBPM = false
         }
+        analyze(trackID: trackID, scope: scope)
     }
 
     func importTracks(from urls: [URL]) {
@@ -198,10 +200,13 @@ final class WorkspaceModel {
             if tracks[index].persistedBPM == nil {
                 tracks[index].persistedBPM = metadata.bpm
             }
+            if tracks[index].persistedKey == nil {
+                tracks[index].persistedKey = metadata.key
+            }
         }
     }
 
-    private func analyze(trackID: AudioTrack.ID) {
+    private func analyze(trackID: AudioTrack.ID, scope: TrackValueScope = .all) {
         guard let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
         let url = tracks[index].url
         tracks[index].analysisStatus = .analyzing
@@ -211,10 +216,17 @@ final class WorkspaceModel {
             do {
                 let result = try await analysisService.analyze(url: url)
                 guard let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
-                tracks[index].analysis = result.bpm
-                tracks[index].keyAnalysis = result.key
+                switch scope {
+                case .all:
+                    tracks[index].analysis = result.bpm
+                    tracks[index].keyAnalysis = result.key
+                case .bpm:
+                    tracks[index].analysis = result.bpm
+                case .key:
+                    tracks[index].keyAnalysis = result.key
+                }
                 tracks[index].analysisStatus = .completed
-                saveAutomatically(for: trackID, scope: .all)
+                saveAutomatically(for: trackID, scope: scope)
             } catch is CancellationError {
                 guard let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
                 tracks[index].analysisStatus = .queued
