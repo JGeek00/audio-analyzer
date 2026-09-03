@@ -10,13 +10,17 @@ permissive license or GPLv3. Copyright notices and licenses for vendored files
 must be preserved.
 
 KissFFT is an independent third-party component: its files remain under their
-BSD-style license and are not relicensed under the GPL. The complete license
-texts are included with the source code:
+BSD-style license and are not relicensed under the GPL. The ReplayGain
+analysis (`ReplayGainAnalyzer`, ITU-R BS.1770) follows the design of
+libebur128, whose MIT license is GPL-compatible and likewise preserved. The
+complete license texts are included with the source code:
 
 - QM-DSP GPLv2:
   [`QM-DSP-COPYING.txt`](Audio%20Analyzer/Services/Analysis/Core/Vendor/qm-dsp/QM-DSP-COPYING.txt)
 - KissFFT BSD-style license:
   [`KissFFT-COPYING.txt`](Audio%20Analyzer/Services/Analysis/Core/Vendor/qm-dsp/ext/kissfft/KissFFT-COPYING.txt)
+- libebur128 MIT license (ReplayGain analysis):
+  [`LIBEBUR128-LICENSE.md`](Audio%20Analyzer/Services/Analysis/Core/LIBEBUR128-LICENSE.md)
 - Third-party notices and attribution:
   [`THIRD_PARTY_NOTICES.md`](Audio%20Analyzer/THIRD_PARTY_NOTICES.md)
 
@@ -43,3 +47,11 @@ In short, it permits redistribution of source and binary code, with or
 without modification, provided that its notices, conditions, and disclaimer
 are retained and its authors' names are not used for promotion without prior
 permission.
+
+## libebur128 MIT license
+
+The complete license applicable to the ReplayGain analysis design is included
+verbatim in
+[`LIBEBUR128-LICENSE.md`](Audio%20Analyzer/Services/Analysis/Core/LIBEBUR128-LICENSE.md).
+In short, it permits use, modification, and distribution, provided that its
+copyright and permission notices are retained.

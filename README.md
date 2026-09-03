@@ -2,7 +2,8 @@
   <h1>Audio Analyzer</h1>
   <p>
     Audio Analyzer is a macOS application that calculates the BPM and musical key
-    of your audio files and lets you review the result on their waveform.
+    of your audio files and lets you review the result on their waveform. Is built using 
+    Swift and Apple's official frameworks, no web technologies are used.
   </p>
   <img src="./ReadmeAssets/screenshot.webp" alt="App screenshot" width="500" />
 </div>

@@ -9,6 +9,7 @@ namespace {
 // ITU-R BS.1770 K-weighting: a high shelf (f0 = 1681.97 Hz) cascaded with a
 // high-pass (f0 = 38.13 Hz), combined here into a single 4th-order section so
 // the coefficients track any sample rate instead of the 48 kHz table values.
+// License preserved in LIBEBUR128-LICENSE.md (same directory).
 constexpr double kPreFilterF0 = 1681.974450955533;
 constexpr double kPreFilterG = 3.999843853973347;
 constexpr double kPreFilterQ = 0.7071752369554196;
