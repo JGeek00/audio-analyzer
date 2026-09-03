@@ -18,13 +18,17 @@ final class TrackAnalysisService {
         queue.maxConcurrentOperationCount = max(1, maxConcurrentOperations)
     }
 
-    func analyze(url: URL) async throws -> (bpm: BPMAnalysisResult, key: KeyAnalysisResult) {
+    func analyze(
+            url: URL,
+            settings: ReplayGainSettings = .current()
+    ) async throws -> (bpm: BPMAnalysisResult, key: KeyAnalysisResult, replayGain: ReplayGainResult) {
         try await withCheckedThrowingContinuation {
             (continuation: CheckedContinuation<
-                    (bpm: BPMAnalysisResult, key: KeyAnalysisResult), Error>) in
+                    (bpm: BPMAnalysisResult, key: KeyAnalysisResult, replayGain: ReplayGainResult), Error>) in
             queue.addOperation {
                 do {
-                    continuation.resume(returning: try Self.analyzeSynchronously(url: url))
+                    continuation.resume(
+                        returning: try Self.analyzeSynchronously(url: url, settings: settings))
                 } catch {
                     continuation.resume(throwing: error)
                 }
@@ -33,7 +37,9 @@ final class TrackAnalysisService {
     }
 
     private static func analyzeSynchronously(
-            url: URL) throws -> (bpm: BPMAnalysisResult, key: KeyAnalysisResult) {
+            url: URL,
+            settings: ReplayGainSettings) throws -> (
+            bpm: BPMAnalysisResult, key: KeyAnalysisResult, replayGain: ReplayGainResult) {
         let hasSecurityScope = url.startAccessingSecurityScopedResource()
         defer {
             if hasSecurityScope {
@@ -83,6 +89,10 @@ final class TrackAnalysisService {
                 sampleRate: result.keyResult.sampleRate,
                 keyChanges: result.keyResult.keyChanges.map {
                     KeyChange(keyID: $0.keyID, frame: $0.frame)
-                }))
+                }),
+            replayGain: settings.result(
+                loudnessLUFS: result.replayGainLoudnessLUFS,
+                peak: result.replayGainPeak,
+                url: url))
     }
 }

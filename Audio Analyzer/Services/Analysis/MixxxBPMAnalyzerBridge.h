@@ -27,12 +27,16 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, readonly) double sampleRate;
 @property(nonatomic, copy, readonly) NSArray<NSNumber*>* rawBeatFrames;
 @property(nonatomic, readonly) KeyCoreResult* keyResult;
+@property(nonatomic, readonly) double replayGainLoudnessLUFS;
+@property(nonatomic, readonly) double replayGainPeak;
 
 - (instancetype)initWithBpm:(double)bpm
-              firstBeatFrame:(long long)firstBeatFrame
-                   sampleRate:(double)sampleRate
-               rawBeatFrames:(NSArray<NSNumber*>*)rawBeatFrames
-                  keyResult:(KeyCoreResult*)keyResult;
+               firstBeatFrame:(long long)firstBeatFrame
+                    sampleRate:(double)sampleRate
+                rawBeatFrames:(NSArray<NSNumber*>*)rawBeatFrames
+                   keyResult:(KeyCoreResult*)keyResult
+    replayGainLoudnessLUFS:(double)replayGainLoudnessLUFS
+           replayGainPeak:(double)replayGainPeak;
 @end
 
 @interface MixxxBPMAnalyzerBridge : NSObject

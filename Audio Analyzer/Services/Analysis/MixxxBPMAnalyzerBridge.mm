@@ -4,6 +4,7 @@
 
 #include "Core/MixxxBpmAnalyzer.h"
 #include "Core/MixxxKeyAnalyzer.h"
+#include "Core/ReplayGainAnalyzer.h"
 
 @implementation KeyChangeCoreResult
 
@@ -42,7 +43,9 @@
              firstBeatFrame:(long long)firstBeatFrame
                    sampleRate:(double)sampleRate
                rawBeatFrames:(NSArray<NSNumber*>*)rawBeatFrames
-                  keyResult:(KeyCoreResult*)keyResult {
+                  keyResult:(KeyCoreResult*)keyResult
+   replayGainLoudnessLUFS:(double)replayGainLoudnessLUFS
+          replayGainPeak:(double)replayGainPeak {
     self = [super init];
     if (self) {
         _bpm = bpm;
@@ -50,6 +53,8 @@
         _sampleRate = sampleRate;
         _rawBeatFrames = [rawBeatFrames copy];
         _keyResult = keyResult;
+        _replayGainLoudnessLUFS = replayGainLoudnessLUFS;
+        _replayGainPeak = replayGainPeak;
     }
     return self;
 }
@@ -59,6 +64,7 @@
 @interface MixxxBPMAnalyzerBridge () {
     std::unique_ptr<bpm::analysis::MixxxBpmAnalyzer> _analyzer;
     std::unique_ptr<bpm::analysis::MixxxKeyAnalyzer> _keyAnalyzer;
+    std::unique_ptr<bpm::analysis::ReplayGainAnalyzer> _replayGainAnalyzer;
     NSString* _lastErrorMessage;
 }
 @end
@@ -87,11 +93,17 @@
         _lastErrorMessage = @"Invalid sample rate for the key analyzer.";
         return nil;
     }
+    _replayGainAnalyzer =
+            std::make_unique<bpm::analysis::ReplayGainAnalyzer>(sampleRate);
+    if (!_replayGainAnalyzer->isValid()) {
+        _lastErrorMessage = @"Invalid sample rate for the replay gain analyzer.";
+        return nil;
+    }
     return self;
 }
 
 - (BOOL)processSamples:(NSData*)interleavedFloat32Stereo {
-    if (!_analyzer || !_keyAnalyzer) {
+    if (!_analyzer || !_keyAnalyzer || !_replayGainAnalyzer) {
         _lastErrorMessage = @"The audio analyzer is not initialized.";
         return NO;
     }
@@ -111,17 +123,23 @@
         _lastErrorMessage = @"The PCM block does not satisfy the key analyzer contract.";
         return NO;
     }
+    if (!_replayGainAnalyzer->process(samples, sampleCount)) {
+        _lastErrorMessage = @"The PCM block does not satisfy the replay gain analyzer contract.";
+        return NO;
+    }
     return YES;
 }
 
 - (nullable BPMCoreResult*)finish {
-    if (!_analyzer || !_keyAnalyzer) {
+    if (!_analyzer || !_keyAnalyzer || !_replayGainAnalyzer) {
         _lastErrorMessage = @"The audio analyzer is not initialized.";
         return nil;
     }
 
     const bpm::analysis::BpmAnalysisResult result = _analyzer->finish();
     const bpm::analysis::KeyAnalysisResult keyResult = _keyAnalyzer->finish();
+    const bpm::analysis::ReplayGainAnalysisResult replayGainResult =
+            _replayGainAnalyzer->finish();
     NSMutableArray<NSNumber*>* rawBeatFrames =
             [NSMutableArray arrayWithCapacity:result.rawBeatFrames.size()];
     for (const double beatFrame : result.rawBeatFrames) {
@@ -143,7 +161,9 @@
             firstBeatFrame:result.firstBeatFrame
             sampleRate:result.sampleRate
             rawBeatFrames:rawBeatFrames
-            keyResult:coreKeyResult];
+            keyResult:coreKeyResult
+            replayGainLoudnessLUFS:replayGainResult.loudnessLUFS
+            replayGainPeak:replayGainResult.peak];
 }
 
 - (NSString*)lastErrorMessage {

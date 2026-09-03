@@ -8,6 +8,7 @@ struct AudioTrack: Identifiable, Hashable {
     var artwork: Data?
     var analysis: BPMAnalysisResult?
     var keyAnalysis: KeyAnalysisResult?
+    var replayGainAnalysis: ReplayGainResult?
     var persistedBPM: Double?
     var persistedKey: String?
     var analysisStatus: TrackAnalysisStatus = .queued
@@ -21,6 +22,7 @@ struct AudioTrack: Identifiable, Hashable {
             artwork: Data? = nil,
             analysis: BPMAnalysisResult? = nil,
             keyAnalysis: KeyAnalysisResult? = nil,
+            replayGainAnalysis: ReplayGainResult? = nil,
             persistedBPM: Double? = nil,
             persistedKey: String? = nil,
             analysisStatus: TrackAnalysisStatus = .queued,
@@ -32,6 +34,7 @@ struct AudioTrack: Identifiable, Hashable {
         self.artwork = artwork
         self.analysis = analysis
         self.keyAnalysis = keyAnalysis
+        self.replayGainAnalysis = replayGainAnalysis
         self.persistedBPM = persistedBPM
         self.persistedKey = persistedKey
         self.analysisStatus = analysisStatus
@@ -59,6 +62,11 @@ struct AudioTrack: Identifiable, Hashable {
 
     var keyValue: String {
         keyAnalysis?.hasDetectedKey == true ? keyAnalysis!.keyText : ""
+    }
+
+    var replayGainValue: Double {
+        guard let replayGainAnalysis, replayGainAnalysis.hasDetectedGain else { return 0 }
+        return replayGainAnalysis.gainDB
     }
 
     var artworkSortValue: String {

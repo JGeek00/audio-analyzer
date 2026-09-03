@@ -220,6 +220,7 @@ final class WorkspaceModel {
                 case .all:
                     tracks[index].analysis = result.bpm
                     tracks[index].keyAnalysis = result.key
+                    tracks[index].replayGainAnalysis = result.replayGain
                 case .bpm:
                     tracks[index].analysis = result.bpm
                 case .key:

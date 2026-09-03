@@ -31,7 +31,7 @@ struct TrackListView: View {
                         ProgressView()
                             .controlSize(.small)
                             .tint(.white)
-                            .accessibilityLabel("Calculating BPM and key")
+                            .accessibilityLabel("Analyzing track")
                     }
                 }
                 .frame(width: 28, height: 28)
@@ -97,6 +97,11 @@ struct TrackListView: View {
                             .accessibilityLabel("Calculated key differs from metadata")
                     }
                 }
+            }
+
+            TableColumn("ReplayGain", value: \.replayGainValue) { track in
+                Text(replayGainLabel(for: track))
+                    .monospacedDigit()
             }
         }
         .overlay {
@@ -192,6 +197,12 @@ struct TrackListView: View {
 
     private func bpmLabel(_ bpm: Double) -> String {
         bpm.formatted(.number.precision(.fractionLength(1)))
+    }
+
+    private func replayGainLabel(for track: AudioTrack) -> String {
+        guard let replayGain = track.replayGainAnalysis,
+              replayGain.hasDetectedGain else { return "—" }
+        return String(format: "%+.2f dB", replayGain.gainDB)
     }
 }
 
