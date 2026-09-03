@@ -20,9 +20,17 @@ final class WorkspaceModel {
         tracks.contains(where: \.hasUnsavedBPM)
     }
 
-    var canSaveMetadata: Bool {
-        !tracks.isEmpty && tracks.allSatisfy {
-            $0.analysisStatus == .completed && $0.analysis?.hasDetectedBPM == true
+    func canSaveMetadata(for scope: TrackValueScope) -> Bool {
+        !tracks.isEmpty && tracks.allSatisfy { track in
+            guard track.analysisStatus == .completed else { return false }
+            switch scope {
+            case .all:
+                return track.analysis?.hasDetectedBPM == true || track.keyAnalysis?.hasDetectedKey == true
+            case .bpm:
+                return track.analysis?.hasDetectedBPM == true
+            case .key:
+                return track.keyAnalysis?.hasDetectedKey == true
+            }
         }
     }
 
@@ -76,18 +84,36 @@ final class WorkspaceModel {
 
     func saveMetadata(for trackID: AudioTrack.ID, scope: TrackValueScope = .all) async throws {
         guard let track = tracks.first(where: { $0.id == trackID }) else { return }
-        guard track.analysisStatus == .completed,
-              let analysis = track.analysis,
-              analysis.hasDetectedBPM else {
-            throw AudioMetadataWriterError.noDetectedBPM
+        guard track.analysisStatus == .completed else {
+            throw AudioMetadataWriterError.noDetectedMetadata
+        }
+
+        let bpm = track.analysis?.hasDetectedBPM == true ? track.analysis?.bpm : nil
+        let key = track.keyAnalysis?.hasDetectedKey == true ? track.keyAnalysis?.keyText : nil
+        switch scope {
+        case .all:
+            guard bpm != nil || key != nil else {
+                throw AudioMetadataWriterError.noDetectedMetadata
+            }
+        case .bpm:
+            guard bpm != nil else {
+                throw AudioMetadataWriterError.noDetectedBPM
+            }
+        case .key:
+            guard key != nil else {
+                throw AudioMetadataWriterError.noDetectedKey
+            }
         }
         try await AudioMetadataWriter().save(
-            bpm: analysis.bpm,
+            bpm: bpm,
+            key: key,
             to: track.url,
             scope: scope
         )
         guard let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
-        tracks[index].persistedBPM = analysis.bpm
+        if scope == .all || scope == .bpm, let bpm {
+            tracks[index].persistedBPM = bpm
+        }
     }
 
     func saveMetadata(for scope: TrackValueScope) async throws {
@@ -99,8 +125,18 @@ final class WorkspaceModel {
     private func saveAutomatically(for trackID: AudioTrack.ID, scope: TrackValueScope) {
         guard isAutoSaveEnabled,
               let track = tracks.first(where: { $0.id == trackID }),
-              track.analysisStatus == .completed,
-              track.analysis?.hasDetectedBPM == true else { return }
+              track.analysisStatus == .completed else { return }
+
+        switch scope {
+        case .all:
+            guard track.analysis?.hasDetectedBPM == true || track.keyAnalysis?.hasDetectedKey == true else {
+                return
+            }
+        case .bpm:
+            guard track.analysis?.hasDetectedBPM == true else { return }
+        case .key:
+            guard track.keyAnalysis?.hasDetectedKey == true else { return }
+        }
 
         Task { [weak self] in
             guard let self else { return }
@@ -118,7 +154,7 @@ final class WorkspaceModel {
 
         tracks[index].hasManuallyAdjustedBPM = false
         switch scope {
-        case .all, .bpm:
+        case .all, .bpm, .key:
             analyze(trackID: trackID)
         }
     }

@@ -15,8 +15,8 @@
 - View an overview waveform and a zoomed waveform with beat markers.
 - Play and pause tracks, seek to any position, and adjust the zoom level.
 - Adjust detected BPM to one half, 2/3, 3/4, 4/3, 3/2, or double.
-- Explicitly save the BPM value to the file's metadata.
-- Optionally save calculated and manually adjusted BPM values automatically.
+- Explicitly save the BPM and musical-key values to the file's metadata.
+- Optionally save calculated and manually adjusted values automatically.
 - Choose a light, dark, or system theme, and configure waveform dimming, beat markers, and low-performance mode.
 
 ## Quick start
@@ -26,17 +26,18 @@
 3. Wait for the analysis to finish.
 4. Select a track to view and play its waveform.
 5. To correct the tempo, open the track's context menu and choose **Modify BPM**.
-6. Choose **Save metadata values...** → **BPM** to write the BPM to the file.
+6. Choose **Save metadata values...** → **BPM** or **Key** to write the analysis to the file.
 
 Analysis runs on the complete file and is independent of playback. Files are
 not modified automatically: metadata is written only when you choose the save
-option. If no detectable tempo is found, the BPM is left unavailable.
+option. If no detectable tempo or key is found, that value is left unavailable.
 
 ## Compatibility
 
 - macOS 14.0 or later.
 - Audio formats supported by macOS through AVFoundation.
 - To save BPM, the application supports AIFF, AIFC, CAF, M4A, MP3, MP4, and WAV when the system allows their metadata to be exported.
+- Key values are written natively for AIFF, FLAC, M4A/MP4, MP3, OGG/Opus, and WAV.
 
 ## Build from source
 

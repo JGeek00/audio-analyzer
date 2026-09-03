@@ -110,9 +110,13 @@ be made a prerequisite for the other.
 ### Metadata
 
 Metadata is read when a track is imported. Saving is explicit: the metadata
-writer preserves existing metadata and replaces only the BPM item, then safely
-replaces the original file. A calculated or manually adjusted BPM is considered
-unsaved until that operation succeeds.
+writer preserves existing metadata and replaces only the selected BPM and/or
+key items, then safely replaces the original file. A calculated or manually
+adjusted BPM is considered unsaved until that operation succeeds.
+
+Key values use the container's native field: `TKEY` in ID3 (MP3 and AIFF),
+`IKEY` in RIFF/WAV, `----:com.apple.iTunes:initialkey` in MP4/M4A, and `KEY`
+in Vorbis comments (FLAC, OGG, and Opus).
 
 ## General code conventions
 
@@ -233,4 +237,5 @@ The current implementation intentionally does not provide persistent analysis
 or caching, stem-specific semantics, the legacy SoundTouch analyzer, or a
 variable-tempo beat-grid UI. Key detection follows Mixxx's default
 `qm-keydetector:2` path and is calculated alongside BPM from the same decoded
-PCM stream; key metadata persistence is not included.
+PCM stream; its result can be explicitly persisted as the file's ID3 initial-key
+metadata alongside BPM.

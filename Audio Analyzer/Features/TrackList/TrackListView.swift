@@ -138,11 +138,19 @@ struct TrackListView: View {
                             Button(TrackValueScope.bpm.rawValue) {
                                 onSaveMetadata(trackID, .bpm)
                             }
+                            .disabled(track.analysis?.hasDetectedBPM != true)
+                            Button(TrackValueScope.key.rawValue) {
+                                onSaveMetadata(trackID, .key)
+                            }
+                            .disabled(track.keyAnalysis?.hasDetectedKey != true)
                         }
                     } label: {
                         Label("Save metadata values...", systemImage: "square.and.arrow.down")
                     }
-                    .disabled(track.analysisStatus != .completed || track.analysis?.hasDetectedBPM != true)
+                    .disabled(
+                        track.analysisStatus != .completed
+                            || (track.analysis?.hasDetectedBPM != true
+                                && track.keyAnalysis?.hasDetectedKey != true))
                 }
                 Section {
                     Button(role: .destructive) {

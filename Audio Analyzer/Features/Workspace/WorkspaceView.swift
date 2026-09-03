@@ -53,11 +53,16 @@ struct WorkspaceView: View {
                         Button(TrackValueScope.bpm.rawValue) {
                             saveMetadata(for: .bpm)
                         }
+                        .disabled(!model.canSaveMetadata(for: .bpm))
+                        Button(TrackValueScope.key.rawValue) {
+                            saveMetadata(for: .key)
+                        }
+                        .disabled(!model.canSaveMetadata(for: .key))
                     }
                 } label: {
                     Label("Save...", systemImage: "square.and.arrow.down")
                 }
-                .disabled(!model.canSaveMetadata)
+                .disabled(!model.canSaveMetadata(for: .all))
             }
             .padding(.horizontal)
             .padding(.vertical, 8)
