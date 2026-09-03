@@ -2,7 +2,8 @@ import AVFoundation
 import Foundation
 
 enum AVFoundationMetadataWriter {
-    static func write(to url: URL, bpm: Double?, key: String?) async throws {
+    static func write(
+            to url: URL, bpm: Double?, key: String?, replayGain: ReplayGainTagRequest? = nil) async throws {
         let asset = AVURLAsset(url: url)
         let metadata: [AVMetadataItem]
         do {
@@ -55,6 +56,28 @@ enum AVFoundationMetadataWriter {
             keyItem.value = key as NSString
             outputMetadata.append(keyItem)
         }
+
+        // ponytail: itlk/com.apple.iTunes.* round-trips through passthrough
+        // export as freeform ---- atoms (verified with ffprobe). WAV/CAF drop
+        // export items, so they are patched post-export below instead.
+        if let standard = replayGain?.standard,
+           fileType == .m4a || fileType == .mp4 {
+            let gainIdentifier = AVMetadataIdentifier(
+                rawValue: "itlk/com.apple.iTunes.REPLAYGAIN_TRACK_GAIN")
+            let peakIdentifier = AVMetadataIdentifier(
+                rawValue: "itlk/com.apple.iTunes.REPLAYGAIN_TRACK_PEAK")
+            outputMetadata.removeAll { item in
+                item.identifier == gainIdentifier || item.identifier == peakIdentifier
+            }
+            let gainItem = AVMutableMetadataItem()
+            gainItem.identifier = gainIdentifier
+            gainItem.value = standard.gain as NSString
+            outputMetadata.append(gainItem)
+            let peakItem = AVMutableMetadataItem()
+            peakItem.identifier = peakIdentifier
+            peakItem.value = standard.peak as NSString
+            outputMetadata.append(peakItem)
+        }
         exportSession.metadata = outputMetadata
 
         let replacementDirectory = try FileManager.default.url(
@@ -70,6 +93,12 @@ enum AVFoundationMetadataWriter {
         try await exportSession.export(to: temporaryURL, as: fileType)
         if fileType == .wav, let key {
             try WAVMetadataWriter.writeInitialKey(key, to: temporaryURL)
+        }
+        if fileType == .wav, let replayGain {
+            try WAVMetadataWriter.writeReplayGain(replayGain, to: temporaryURL)
+        }
+        if fileType == .caf, let replayGain {
+            try CAFMetadataWriter.writeReplayGain(replayGain, to: temporaryURL)
         }
         if (fileType == .m4a || fileType == .mp4), !sourceHasGaplessMetadata {
             try MP4GaplessMetadataCleaner.removeGeneratedMetadata(from: temporaryURL)

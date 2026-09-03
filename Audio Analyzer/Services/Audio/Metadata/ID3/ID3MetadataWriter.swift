@@ -1,7 +1,8 @@
 import Foundation
 
 enum ID3MetadataWriter {
-    static func write(to url: URL, bpm: Double?, key: String?) throws {
+    static func write(
+            to url: URL, bpm: Double?, key: String?, replayGain: ReplayGainTagRequest? = nil) throws {
         let input = [UInt8](try Data(contentsOf: url))
         var tagEnd = 0
         if input.count >= 10, String(decoding: input[0..<3], as: UTF8.self) == "ID3" {
@@ -18,12 +19,17 @@ enum ID3MetadataWriter {
         let tag = try makeTag(
             existing: Array(input[0..<tagEnd]),
             bpm: bpm,
-            key: key
+            key: key,
+            replayGain: replayGain
         )
         try Data(tag + Array(input[tagEnd...])).write(to: url, options: .atomic)
     }
 
-    static func makeTag(existing: [UInt8], bpm: Double?, key: String?) throws -> [UInt8] {
+    static func makeTag(
+            existing: [UInt8],
+            bpm: Double?,
+            key: String?,
+            replayGain: ReplayGainTagRequest? = nil) throws -> [UInt8] {
         let version: UInt8
         let existingBody: [UInt8]
         if existing.isEmpty {
@@ -70,7 +76,9 @@ enum ID3MetadataWriter {
                 }
                 let replacingBPM = frameID == "TBPM" && bpm != nil
                 let replacingKey = frameID == "TKEY" && key != nil
-                if !replacingBPM && !replacingKey {
+                let replacingReplayGain = frameID == "TXXX" && replayGain != nil
+                    && isReplayGainFrame(at: offset, size: frameSize, version: version, in: existing)
+                if !replacingBPM && !replacingKey && !replacingReplayGain {
                     frames.append(contentsOf: existing[offset..<frameEnd])
                 }
                 offset = frameEnd
@@ -85,6 +93,12 @@ enum ID3MetadataWriter {
         if let key {
             body.append(contentsOf: textFrame("TKEY", value: key, version: version))
         }
+        if let standard = replayGain?.standard {
+            body.append(contentsOf: txxxFrame(
+                description: "REPLAYGAIN_TRACK_GAIN", value: standard.gain, version: version))
+            body.append(contentsOf: txxxFrame(
+                description: "REPLAYGAIN_TRACK_PEAK", value: standard.peak, version: version))
+        }
 
         var tag = Array("ID3".utf8) + [version, 0, 0]
         tag.append(contentsOf: synchsafe(body.count))
@@ -92,8 +106,39 @@ enum ID3MetadataWriter {
         return tag
     }
 
-    private static func textFrame(_ id: String, value: String, version: UInt8) -> [UInt8] {
+    // ponytail: byte-substring match covers the latin1/UTF-8 descriptions every
+    // ReplayGain tool writes; UTF-16 TXXX descriptions don't occur in practice.
+    private static func isReplayGainFrame(
+            at offset: Int, size: Int, version: UInt8, in bytes: [UInt8]) -> Bool {
+        let payloadStart = offset + 10
+        let payloadEnd = payloadStart + size
+        guard payloadEnd <= bytes.count, size > 1 else { return false }
+        // ponytail: materialize so subscripting below is 0-based (slices keep
+        // the base indices and trap on 0-based access).
+        let payload = Array(bytes[payloadStart + 1..<payloadEnd])
+        for name in ["REPLAYGAIN_TRACK_GAIN", "REPLAYGAIN_TRACK_PEAK"] {
+            let needle = Array(name.utf8)
+            if payload.count >= needle.count,
+               (0...payload.count - needle.count).contains(where: {
+                   Array(payload[$0..<$0 + needle.count]) == needle
+               }) {
+                return true
+            }
+        }
+        return false
+    }
+
+    private static func txxxFrame(description: String, value: String, version: UInt8) -> [UInt8] {
         let encoding: UInt8 = version == 4 ? 3 : 0
+        let payload = [encoding] + Array(description.utf8) + [0] + Array(value.utf8)
+        var frame = Array("TXXX".utf8)
+        frame.append(contentsOf: version == 4 ? synchsafe(payload.count) : bigEndian(payload.count))
+        frame.append(contentsOf: [0, 0])
+        frame.append(contentsOf: payload)
+        return frame
+    }
+
+    private static func textFrame(_ id: String, value: String, version: UInt8) -> [UInt8] {        let encoding: UInt8 = version == 4 ? 3 : 0
         let payload = [encoding] + Array(value.utf8)
         var frame = Array(id.utf8)
         frame.append(contentsOf: version == 4 ? synchsafe(payload.count) : bigEndian(payload.count))

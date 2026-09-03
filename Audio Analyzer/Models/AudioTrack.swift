@@ -11,6 +11,7 @@ struct AudioTrack: Identifiable, Hashable {
     var replayGainAnalysis: ReplayGainResult?
     var persistedBPM: Double?
     var persistedKey: String?
+    var persistedReplayGain: Double?
     var analysisStatus: TrackAnalysisStatus = .queued
     var hasManuallyAdjustedBPM = false
 
@@ -25,6 +26,7 @@ struct AudioTrack: Identifiable, Hashable {
             replayGainAnalysis: ReplayGainResult? = nil,
             persistedBPM: Double? = nil,
             persistedKey: String? = nil,
+            persistedReplayGain: Double? = nil,
             analysisStatus: TrackAnalysisStatus = .queued,
             hasManuallyAdjustedBPM: Bool = false) {
         self.id = id
@@ -37,6 +39,7 @@ struct AudioTrack: Identifiable, Hashable {
         self.replayGainAnalysis = replayGainAnalysis
         self.persistedBPM = persistedBPM
         self.persistedKey = persistedKey
+        self.persistedReplayGain = persistedReplayGain
         self.analysisStatus = analysisStatus
         self.hasManuallyAdjustedBPM = hasManuallyAdjustedBPM
     }
@@ -100,8 +103,7 @@ struct AudioTrack: Identifiable, Hashable {
         return abs(persistedBPM - analysis.bpm) > 0.05
     }
 
-    var hasPersistedKeyConflict: Bool {
-        guard analysisStatus == .completed,
+    var hasPersistedKeyConflict: Bool {        guard analysisStatus == .completed,
               let keyAnalysis,
               keyAnalysis.hasDetectedKey,
               let persistedKey,
@@ -110,5 +112,23 @@ struct AudioTrack: Identifiable, Hashable {
         }
         return persistedKey.trimmingCharacters(in: .whitespacesAndNewlines)
             .caseInsensitiveCompare(keyAnalysis.keyText) != .orderedSame
+    }
+
+    var hasUnsavedReplayGain: Bool {
+        guard analysisStatus == .completed,
+              let replayGainAnalysis,
+              replayGainAnalysis.hasDetectedGain else { return false }
+        guard let persistedReplayGain, persistedReplayGain.isFinite else { return true }
+        return hasPersistedReplayGainConflict
+    }
+
+    var hasPersistedReplayGainConflict: Bool {
+        guard analysisStatus == .completed,
+              let replayGainAnalysis,
+              replayGainAnalysis.hasDetectedGain,
+              let persistedReplayGain,
+              persistedReplayGain.isFinite else { return false }
+        // ponytail: tags store 2 decimals; 0.01 absorbs formatting residue.
+        return abs(persistedReplayGain - replayGainAnalysis.gainDB) > 0.01
     }
 }

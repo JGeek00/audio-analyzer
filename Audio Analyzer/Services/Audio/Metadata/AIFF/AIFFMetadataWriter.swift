@@ -1,7 +1,8 @@
 import Foundation
 
 enum AIFFMetadataWriter {
-    static func write(to url: URL, bpm: Double?, key: String?) throws {
+    static func write(
+            to url: URL, bpm: Double?, key: String?, replayGain: ReplayGainTagRequest? = nil) throws {
         let input = [UInt8](try Data(contentsOf: url))
         guard input.count >= 12,
               String(decoding: input[0..<4], as: UTF8.self) == "FORM",
@@ -33,7 +34,8 @@ enum AIFFMetadataWriter {
 
         output.append(contentsOf: chunk(
             "ID3 ",
-            payload: try ID3MetadataWriter.makeTag(existing: existingID3, bpm: bpm, key: key)
+            payload: try ID3MetadataWriter.makeTag(
+                existing: existingID3, bpm: bpm, key: key, replayGain: replayGain)
         ))
         let formSize = UInt32(output.count - 8)
         for index in 0..<4 {

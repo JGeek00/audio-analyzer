@@ -5,6 +5,7 @@ final class AudioMetadataWriter {
     func save(
             bpm: Double? = nil,
             key: String? = nil,
+            replayGain: ReplayGainTagRequest? = nil,
             to url: URL,
             scope: TrackValueScope = .all) async throws {
         let hasSecurityScope = url.startAccessingSecurityScopedResource()
@@ -14,32 +15,40 @@ final class AudioMetadataWriter {
             }
         }
 
-        let values = valuesToWrite(bpm: bpm, key: key, scope: scope)
+        let values = valuesToWrite(bpm: bpm, key: key, replayGain: replayGain, scope: scope)
         switch url.pathExtension.lowercased() {
         case "mp3":
-            try ID3MetadataWriter.write(to: url, bpm: values.bpm, key: values.key)
+            try ID3MetadataWriter.write(
+                to: url, bpm: values.bpm, key: values.key, replayGain: values.replayGain)
         case "aif", "aiff", "aifc":
-            try AIFFMetadataWriter.write(to: url, bpm: values.bpm, key: values.key)
+            try AIFFMetadataWriter.write(
+                to: url, bpm: values.bpm, key: values.key, replayGain: values.replayGain)
         case "flac":
-            try FLACMetadataWriter.write(to: url, bpm: values.bpm, key: values.key)
+            try FLACMetadataWriter.write(
+                to: url, bpm: values.bpm, key: values.key, replayGain: values.replayGain)
         case "ogg", "oga", "opus":
-            try OggMetadataWriter.write(to: url, bpm: values.bpm, key: values.key)
+            try OggMetadataWriter.write(
+                to: url, bpm: values.bpm, key: values.key, replayGain: values.replayGain)
         default:
-            try await AVFoundationMetadataWriter.write(to: url, bpm: values.bpm, key: values.key)
+            try await AVFoundationMetadataWriter.write(
+                to: url, bpm: values.bpm, key: values.key, replayGain: values.replayGain)
         }
     }
 
     private func valuesToWrite(
             bpm: Double?,
             key: String?,
-            scope: TrackValueScope) -> (bpm: Double?, key: String?) {
+            replayGain: ReplayGainTagRequest?,
+            scope: TrackValueScope) -> (bpm: Double?, key: String?, replayGain: ReplayGainTagRequest?) {
         switch scope {
         case .all:
-            (bpm, key)
+            (bpm, key, replayGain)
         case .bpm:
-            (bpm, nil)
+            (bpm, nil, nil)
         case .key:
-            (nil, key)
+            (nil, key, nil)
+        case .replayGain:
+            (nil, nil, replayGain)
         }
     }
 }

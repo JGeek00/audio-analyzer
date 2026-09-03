@@ -3,6 +3,7 @@ import Foundation
 enum AudioMetadataWriterError: LocalizedError {
     case noDetectedBPM
     case noDetectedKey
+    case noDetectedReplayGain
     case noDetectedMetadata
     case exportSessionUnavailable
     case unsupportedFileType(String)
@@ -14,6 +15,8 @@ enum AudioMetadataWriterError: LocalizedError {
             return "BPM analysis has not completed for this track."
         case .noDetectedKey:
             return "Key analysis has not completed for this track."
+        case .noDetectedReplayGain:
+            return "ReplayGain analysis has not completed for this track."
         case .noDetectedMetadata:
             return "No analyzed metadata values are available for this track."
         case .exportSessionUnavailable:

@@ -40,11 +40,11 @@ struct PreferencesView: View {
                 .pickerStyle(.radioGroup)
 
                 Toggle("Auto save", isOn: $autoSave)
-                    .help("Automatically saves calculated and manually adjusted BPM values to metadata.")
+                    .help("Automatically saves calculated BPM, key and ReplayGain values to metadata.")
             } header: {
                 Text("General")
             } footer: {
-                Text("Automatically saves calculated BPM after analysis and manually adjusted BPM after each change.")
+                Text("Automatically saves calculated values after analysis and manually adjusted BPM after each change.")
             }
 
             Section {

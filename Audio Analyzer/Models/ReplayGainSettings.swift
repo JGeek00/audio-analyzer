@@ -63,4 +63,34 @@ struct ReplayGainSettings: Hashable, Sendable {
         return ReplayGainResult(
             loudnessLUFS: loudnessLUFS, peak: peak, gainDB: gain, clipped: clipped)
     }
+
+    // Resolves which tag flavors to write. Standard REPLAYGAIN_* tags always
+    // apply; Opus files additionally honor the R128 setting (RFC 7845).
+    func tagRequest(for url: URL, result: ReplayGainResult) -> ReplayGainTagRequest? {
+        guard result.hasDetectedGain else { return nil }
+        let standard = ReplayGainTagRequest.Standard(
+            gain: result.trackGainTag, peak: result.trackPeakTag)
+        guard url.pathExtension.lowercased() == "opus", opusMode.usesR128 else {
+            return ReplayGainTagRequest(standard: standard, r128Gain: nil)
+        }
+        switch opusMode {
+        case .standard:
+            return ReplayGainTagRequest(standard: standard, r128Gain: nil)
+        case .r128:
+            return ReplayGainTagRequest(standard: nil, r128Gain: result.r128TrackGainTag)
+        case .both:
+            return ReplayGainTagRequest(standard: standard, r128Gain: result.r128TrackGainTag)
+        }
+    }
+}
+
+struct ReplayGainTagRequest: Sendable {
+    struct Standard: Sendable {
+        let gain: String
+        let peak: String
+    }
+
+    // ponytail: one resolved request beats threading settings+result through writers.
+    let standard: Standard?
+    let r128Gain: String?
 }

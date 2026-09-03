@@ -1,6 +1,49 @@
 import Foundation
 
 enum WAVMetadataWriter {
+    // ponytail: ReplayGain lives in an ID3 chunk (loudgain-style); AVFoundation
+    // exports cannot carry it, same reason writeInitialKey exists.
+    static func writeReplayGain(_ replayGain: ReplayGainTagRequest, to url: URL) throws {
+        let input = [UInt8](try Data(contentsOf: url))
+        guard input.count >= 12,
+              String(decoding: input[0..<4], as: UTF8.self) == "RIFF",
+              String(decoding: input[8..<12], as: UTF8.self) == "WAVE" else {
+            throw AudioMetadataWriterError.unsupportedFileType("wav")
+        }
+
+        var output = Array(input[0..<12])
+        var offset = 12
+        while offset + 8 <= input.count {
+            let size = uint32LE(at: offset + 4, in: input)
+            let payloadStart = offset + 8
+            let payloadEnd = payloadStart + size
+            let chunkEnd = payloadEnd + size % 2
+            guard payloadEnd <= input.count, chunkEnd <= input.count else {
+                throw AudioMetadataWriterError.unsupportedFileType("wav")
+            }
+            if String(decoding: input[offset..<offset + 4], as: UTF8.self) != "id3 " {
+                output.append(contentsOf: input[offset..<chunkEnd])
+            }
+            offset = chunkEnd
+        }
+        guard offset == input.count else {
+            throw AudioMetadataWriterError.unsupportedFileType("wav")
+        }
+
+        let tag = try ID3MetadataWriter.makeTag(
+            existing: [],
+            bpm: nil,
+            key: nil,
+            replayGain: replayGain)
+        output.append(contentsOf: chunk("id3 ", payload: tag))
+
+        let riffSize = UInt32(output.count - 8)
+        for index in 0..<4 {
+            output[4 + index] = UInt8((riffSize >> UInt32(index * 8)) & 0xff)
+        }
+        try Data(output).write(to: url, options: .atomic)
+    }
+
     static func writeInitialKey(_ key: String, to url: URL) throws {
         let input = [UInt8](try Data(contentsOf: url))
         guard input.count >= 12,

@@ -7,6 +7,7 @@ struct AudioFileMetadata: Sendable {
     let artwork: Data?
     let bpm: Double?
     let key: String?
+    let replayGain: Double?
 }
 
 struct AudioFileDescription: Sendable {
@@ -41,7 +42,8 @@ final class AudioFileDecoder {
 
         let asset = AVAsset(url: url)
         guard let commonMetadata = try? await asset.load(.commonMetadata) else {
-            return AudioFileMetadata(title: nil, artist: nil, artwork: nil, bpm: nil, key: nil)
+            return AudioFileMetadata(
+                title: nil, artist: nil, artwork: nil, bpm: nil, key: nil, replayGain: nil)
         }
         let metadata = (try? await asset.load(.metadata)) ?? commonMetadata
 
@@ -100,12 +102,61 @@ final class AudioFileDecoder {
         } else {
             nil
         }
+        let replayGainIdentifiers = [
+            AVMetadataIdentifier(rawValue: "itlk/com.apple.iTunes.REPLAYGAIN_TRACK_GAIN"),
+            AVMetadataIdentifier(rawValue: "vorb/REPLAYGAIN_TRACK_GAIN"),
+            AVMetadataIdentifier(rawValue: "vorbis/REPLAYGAIN_TRACK_GAIN")
+        ]
+        let r128Identifiers = [
+            AVMetadataIdentifier(rawValue: "vorb/R128_TRACK_GAIN"),
+            AVMetadataIdentifier(rawValue: "vorbis/R128_TRACK_GAIN")
+        ]
+        func firstItem(matching identifiers: [AVMetadataIdentifier]) -> AVMetadataItem? {
+            metadata.first { item in
+                if let identifier = item.identifier, identifiers.contains(identifier) {
+                    return true
+                }
+                return false
+            }
+        }
+        func txxxItem(descriptions: Set<String>) async -> AVMetadataItem? {
+            for item in metadata where item.identifier == AVMetadataIdentifier(rawValue: "id3/TXXX") {
+                guard let attributes = try? await item.load(.extraAttributes),
+                      let info = attributes[.info] as? String,
+                      descriptions.contains(info.uppercased()) else { continue }
+                return item
+            }
+            return nil
+        }
+        // ponytail: tags always use '.', so Double parses locale-independently.
+        func gainValue(from item: AVMetadataItem?) async -> Double? {
+            guard let item,
+                  let text = try? await item.load(.stringValue) else { return nil }
+            return Double(text.split(separator: " ").first.map(String.init) ?? "")
+        }
+        var replayGain: Double?
+        if let item = firstItem(matching: replayGainIdentifiers) {
+            replayGain = await gainValue(from: item)
+        } else if let item = firstItem(matching: r128Identifiers),
+                  let text = try? await item.load(.stringValue),
+                  let q78 = Double(text) {
+            replayGain = q78 / 256.0
+        } else {
+            replayGain = await gainValue(
+                from: await txxxItem(descriptions: ["REPLAYGAIN_TRACK_GAIN"]))
+        }
+        if replayGain == nil, url.pathExtension.lowercased() == "caf",
+           let data = try? Data(contentsOf: url) {
+            // ponytail: AVAsset doesn't surface CAF info entries; parse them.
+            replayGain = CAFMetadataWriter.replayGain(in: [UInt8](data))
+        }
         return AudioFileMetadata(
             title: title ?? nil,
             artist: artist ?? nil,
             artwork: artwork ?? nil,
             bpm: bpm,
-            key: key
+            key: key,
+            replayGain: replayGain
         )
     }
 

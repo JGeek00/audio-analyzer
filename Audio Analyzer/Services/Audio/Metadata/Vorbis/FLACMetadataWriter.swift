@@ -1,7 +1,8 @@
 import Foundation
 
 enum FLACMetadataWriter {
-    static func write(to url: URL, bpm: Double?, key: String?) throws {
+    static func write(
+            to url: URL, bpm: Double?, key: String?, replayGain: ReplayGainTagRequest? = nil) throws {
         let input = [UInt8](try Data(contentsOf: url))
         guard input.count >= 4, Array(input[0..<4]) == Array("fLaC".utf8) else {
             throw AudioMetadataWriterError.unsupportedFileType("flac")
@@ -31,6 +32,7 @@ enum FLACMetadataWriter {
                     in: payload,
                     bpm: bpm,
                     key: key,
+                    replayGain: replayGain,
                     fileExtension: "flac"
                 )
                 hasVorbisComments = true
@@ -41,7 +43,7 @@ enum FLACMetadataWriter {
         }
 
         if !hasVorbisComments {
-            blocks.append((4, VorbisCommentWriter.newPayload(bpm: bpm, key: key)))
+            blocks.append((4, VorbisCommentWriter.newPayload(bpm: bpm, key: key, replayGain: replayGain)))
         }
 
         var output = Array("fLaC".utf8)

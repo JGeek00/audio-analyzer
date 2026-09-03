@@ -30,7 +30,7 @@ struct WorkspaceView: View {
                 }
 
                 Button(role: .destructive) {
-                    if model.hasUnsavedBPMValues {
+                    if model.hasUnsavedBPMValues || model.hasUnsavedReplayGainValues {
                         isShowingClearConfirmation = true
                     } else {
                         model.clearTracks()
@@ -58,6 +58,10 @@ struct WorkspaceView: View {
                             saveMetadata(for: .key)
                         }
                         .disabled(!model.canSaveMetadata(for: .key))
+                        Button(TrackValueScope.replayGain.rawValue) {
+                            saveMetadata(for: .replayGain)
+                        }
+                        .disabled(!model.canSaveMetadata(for: .replayGain))
                     }
                 } label: {
                     Label("Save...", systemImage: "square.and.arrow.down")
@@ -72,7 +76,7 @@ struct WorkspaceView: View {
                     model.clearTracks()
                 }
             } message: {
-                Text("Some calculated or manually adjusted BPM values have not been saved to metadata. Are you sure you want to clear all tracks?")
+                Text("Some calculated BPM or ReplayGain values have not been saved to metadata. Are you sure you want to clear all tracks?")
             }
 
             TrackListView(

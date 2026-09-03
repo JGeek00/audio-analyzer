@@ -24,16 +24,23 @@ final class WorkspaceModel {
         tracks.contains(where: \.hasUnsavedBPM)
     }
 
+    var hasUnsavedReplayGainValues: Bool {
+        tracks.contains(where: \.hasUnsavedReplayGain)
+    }
+
     func canSaveMetadata(for scope: TrackValueScope) -> Bool {
         !tracks.isEmpty && tracks.allSatisfy { track in
             guard track.analysisStatus == .completed else { return false }
             switch scope {
             case .all:
                 return track.analysis?.hasDetectedBPM == true || track.keyAnalysis?.hasDetectedKey == true
+                    || track.replayGainAnalysis?.hasDetectedGain == true
             case .bpm:
                 return track.analysis?.hasDetectedBPM == true
             case .key:
                 return track.keyAnalysis?.hasDetectedKey == true
+            case .replayGain:
+                return track.replayGainAnalysis?.hasDetectedGain == true
             }
         }
     }
@@ -66,7 +73,8 @@ final class WorkspaceModel {
     var closeWarningMessage: String? {
         let processingCount = tracks.filter(\.isProcessing).count
         let unsavedBPMCount = tracks.filter(\.hasUnsavedBPM).count
-        guard processingCount > 0 || unsavedBPMCount > 0 else { return nil }
+        let unsavedReplayGainCount = tracks.filter(\.hasUnsavedReplayGain).count
+        guard processingCount > 0 || unsavedBPMCount > 0 || unsavedReplayGainCount > 0 else { return nil }
 
         var messages: [String] = []
         if processingCount > 0 {
@@ -74,6 +82,9 @@ final class WorkspaceModel {
         }
         if unsavedBPMCount > 0 {
             messages.append("\(unsavedBPMCount) track(s) have BPM values that are not saved in metadata.")
+        }
+        if unsavedReplayGainCount > 0 {
+            messages.append("\(unsavedReplayGainCount) track(s) have ReplayGain values that are not saved in metadata.")
         }
         return messages.joined(separator: "\n")
     }
@@ -115,9 +126,17 @@ final class WorkspaceModel {
 
         let bpm = track.analysis?.hasDetectedBPM == true ? track.analysis?.bpm : nil
         let key = track.keyAnalysis?.hasDetectedKey == true ? track.keyAnalysis?.keyText : nil
+        // ponytail: re-apply current settings so saved tags match prefs even if
+        // the analysis ran before the user changed target/clipping.
+        let replayGainAnalysis = track.replayGainAnalysis?.hasDetectedGain == true
+            ? track.replayGainAnalysis?.applying(ReplayGainSettings.current(), for: track.url)
+            : nil
+        let replayGain = replayGainAnalysis.flatMap {
+            ReplayGainSettings.current().tagRequest(for: track.url, result: $0)
+        }
         switch scope {
         case .all:
-            guard bpm != nil || key != nil else {
+            guard bpm != nil || key != nil || replayGain != nil else {
                 throw AudioMetadataWriterError.noDetectedMetadata
             }
         case .bpm:
@@ -128,10 +147,15 @@ final class WorkspaceModel {
             guard key != nil else {
                 throw AudioMetadataWriterError.noDetectedKey
             }
+        case .replayGain:
+            guard replayGain != nil else {
+                throw AudioMetadataWriterError.noDetectedReplayGain
+            }
         }
         try await AudioMetadataWriter().save(
             bpm: bpm,
             key: key,
+            replayGain: replayGain,
             to: track.url,
             scope: scope
         )
@@ -141,6 +165,10 @@ final class WorkspaceModel {
         }
         if scope == .all || scope == .key, let key {
             tracks[index].persistedKey = key
+        }
+        if scope == .all || scope == .replayGain, let replayGainAnalysis {
+            tracks[index].persistedReplayGain = replayGainAnalysis.gainDB
+            tracks[index].replayGainAnalysis = replayGainAnalysis
         }
     }
 
@@ -157,13 +185,16 @@ final class WorkspaceModel {
 
         switch scope {
         case .all:
-            guard track.analysis?.hasDetectedBPM == true || track.keyAnalysis?.hasDetectedKey == true else {
+            guard track.analysis?.hasDetectedBPM == true || track.keyAnalysis?.hasDetectedKey == true
+                || track.replayGainAnalysis?.hasDetectedGain == true else {
                 return
             }
         case .bpm:
             guard track.analysis?.hasDetectedBPM == true else { return }
         case .key:
             guard track.keyAnalysis?.hasDetectedKey == true else { return }
+        case .replayGain:
+            guard track.replayGainAnalysis?.hasDetectedGain == true else { return }
         }
 
         Task { [weak self] in
@@ -228,6 +259,9 @@ final class WorkspaceModel {
             if tracks[index].persistedKey == nil {
                 tracks[index].persistedKey = metadata.key
             }
+            if tracks[index].persistedReplayGain == nil {
+                tracks[index].persistedReplayGain = metadata.replayGain
+            }
         }
     }
 
@@ -250,6 +284,8 @@ final class WorkspaceModel {
                     tracks[index].analysis = result.bpm
                 case .key:
                     tracks[index].keyAnalysis = result.key
+                case .replayGain:
+                    tracks[index].replayGainAnalysis = result.replayGain
                 }
                 tracks[index].analysisStatus = .completed
                 saveAutomatically(for: trackID, scope: scope)

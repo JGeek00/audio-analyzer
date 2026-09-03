@@ -1,7 +1,8 @@
 import Foundation
 
 enum OggMetadataWriter {
-    static func write(to url: URL, bpm: Double?, key: String?) throws {
+    static func write(
+            to url: URL, bpm: Double?, key: String?, replayGain: ReplayGainTagRequest? = nil) throws {
         let input = [UInt8](try Data(contentsOf: url))
         var pages: [[UInt8]] = []
         var packet: [UInt8] = []
@@ -73,6 +74,7 @@ enum OggMetadataWriter {
             in: Array(commentPacket[header.count...]),
             bpm: bpm,
             key: key,
+            replayGain: replayGain,
             fileExtension: "ogg"
         )
         let newPacket = header + payload

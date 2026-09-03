@@ -100,8 +100,24 @@ struct TrackListView: View {
             }
 
             TableColumn("ReplayGain", value: \.replayGainValue) { track in
-                Text(replayGainLabel(for: track))
+                HStack(spacing: 6) {
+                    MetadataValueView(
+                        persistedValue: track.persistedReplayGain,
+                        calculatedValue: track.replayGainAnalysis?.hasDetectedGain == true
+                                ? track.replayGainAnalysis?.gainDB
+                                : nil,
+                        hasConflict: track.hasPersistedReplayGainConflict,
+                        format: replayGainLabel
+                    )
                     .monospacedDigit()
+
+                    if track.hasUnsavedReplayGain {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.orange)
+                            .help("Calculated ReplayGain differs from metadata")
+                            .accessibilityLabel("Calculated ReplayGain differs from metadata")
+                    }
+                }
             }
         }
         .overlay {
@@ -145,6 +161,9 @@ struct TrackListView: View {
                             Button(TrackValueScope.key.rawValue) {
                                 onRecalculate(trackID, .key)
                             }
+                            Button(TrackValueScope.replayGain.rawValue) {
+                                onRecalculate(trackID, .replayGain)
+                            }
                         }
                     } label: {
                         Label("Recalculate...", systemImage: "arrow.circlepath")
@@ -165,6 +184,10 @@ struct TrackListView: View {
                                 onSaveMetadata(trackID, .key)
                             }
                             .disabled(track.keyAnalysis?.hasDetectedKey != true)
+                            Button(TrackValueScope.replayGain.rawValue) {
+                                onSaveMetadata(trackID, .replayGain)
+                            }
+                            .disabled(track.replayGainAnalysis?.hasDetectedGain != true)
                         }
                     } label: {
                         Label("Save metadata values...", systemImage: "square.and.arrow.down")
@@ -172,7 +195,8 @@ struct TrackListView: View {
                     .disabled(
                         track.analysisStatus != .completed
                             || (track.analysis?.hasDetectedBPM != true
-                                && track.keyAnalysis?.hasDetectedKey != true))
+                                && track.keyAnalysis?.hasDetectedKey != true
+                                && track.replayGainAnalysis?.hasDetectedGain != true))
                 }
                 Section {
                     Button(role: .destructive) {
@@ -199,10 +223,8 @@ struct TrackListView: View {
         bpm.formatted(.number.precision(.fractionLength(1)))
     }
 
-    private func replayGainLabel(for track: AudioTrack) -> String {
-        guard let replayGain = track.replayGainAnalysis,
-              replayGain.hasDetectedGain else { return "—" }
-        return String(format: "%+.2f dB", replayGain.gainDB)
+    private func replayGainLabel(_ gainDB: Double) -> String {
+        String(format: "%+.2f dB", gainDB)
     }
 }
 
