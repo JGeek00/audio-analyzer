@@ -7,6 +7,7 @@ struct AudioTrack: Identifiable, Hashable {
     var artist: String?
     var artwork: Data?
     var analysis: BPMAnalysisResult?
+    var keyAnalysis: KeyAnalysisResult?
     var persistedBPM: Double?
     var analysisStatus: TrackAnalysisStatus = .queued
     var hasManuallyAdjustedBPM = false
@@ -18,6 +19,7 @@ struct AudioTrack: Identifiable, Hashable {
             artist: String? = nil,
             artwork: Data? = nil,
             analysis: BPMAnalysisResult? = nil,
+            keyAnalysis: KeyAnalysisResult? = nil,
             persistedBPM: Double? = nil,
             analysisStatus: TrackAnalysisStatus = .queued,
             hasManuallyAdjustedBPM: Bool = false) {
@@ -27,6 +29,7 @@ struct AudioTrack: Identifiable, Hashable {
         self.artist = artist
         self.artwork = artwork
         self.analysis = analysis
+        self.keyAnalysis = keyAnalysis
         self.persistedBPM = persistedBPM
         self.analysisStatus = analysisStatus
         self.hasManuallyAdjustedBPM = hasManuallyAdjustedBPM
@@ -49,6 +52,10 @@ struct AudioTrack: Identifiable, Hashable {
     var bpmValue: Double {
         guard let analysis, analysis.hasDetectedBPM else { return 0 }
         return analysis.bpm
+    }
+
+    var keyValue: String {
+        keyAnalysis?.hasDetectedKey == true ? keyAnalysis!.keyText : ""
     }
 
     var artworkSortValue: String {

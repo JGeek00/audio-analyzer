@@ -1,8 +1,8 @@
 <div align="center">
   <h1>Audio Analyzer</h1>
   <p>
-    Audio Analyzer is a macOS application that calculates the BPM of your audio
-    files and lets you review the result on their waveform.
+    Audio Analyzer is a macOS application that calculates the BPM and musical key
+    of your audio files and lets you review the result on their waveform.
   </p>
   <img src="./ReadmeAssets/screenshot.webp" alt="App screenshot" width="500" />
 </div>
@@ -11,7 +11,7 @@
 
 - Import one or more files using the file picker or by dragging them into the track list.
 - Read the title, artist, artwork, and stored BPM from file metadata.
-- Automatically analyze each track's tempo and show its analysis status, sample rate, and detected BPM.
+- Automatically analyze each track's tempo and key, and show its analysis status, sample rate, detected BPM, and key.
 - View an overview waveform and a zoomed waveform with beat markers.
 - Play and pause tracks, seek to any position, and adjust the zoom level.
 - Adjust detected BPM to one half, 2/3, 3/4, 4/3, 3/2, or double.

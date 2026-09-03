@@ -18,9 +18,10 @@ final class TrackAnalysisService {
         queue.maxConcurrentOperationCount = max(1, maxConcurrentOperations)
     }
 
-    func analyze(url: URL) async throws -> BPMAnalysisResult {
+    func analyze(url: URL) async throws -> (bpm: BPMAnalysisResult, key: KeyAnalysisResult) {
         try await withCheckedThrowingContinuation {
-            (continuation: CheckedContinuation<BPMAnalysisResult, Error>) in
+            (continuation: CheckedContinuation<
+                    (bpm: BPMAnalysisResult, key: KeyAnalysisResult), Error>) in
             queue.addOperation {
                 do {
                     continuation.resume(returning: try Self.analyzeSynchronously(url: url))
@@ -31,7 +32,8 @@ final class TrackAnalysisService {
         }
     }
 
-    private static func analyzeSynchronously(url: URL) throws -> BPMAnalysisResult {
+    private static func analyzeSynchronously(
+            url: URL) throws -> (bpm: BPMAnalysisResult, key: KeyAnalysisResult) {
         let hasSecurityScope = url.startAccessingSecurityScopedResource()
         defer {
             if hasSecurityScope {
@@ -47,7 +49,9 @@ final class TrackAnalysisService {
         }
 
         let sampleRate = file.processingFormat.sampleRate
-        guard let analyzer = MixxxBPMAnalyzerBridge(sampleRate: sampleRate) else {
+        guard let analyzer = MixxxBPMAnalyzerBridge(
+                sampleRate: sampleRate,
+                totalFrameCount: file.length) else {
             throw TrackAnalysisError(message: "Invalid sample rate for \(url.lastPathComponent).")
         }
 
@@ -67,10 +71,18 @@ final class TrackAnalysisService {
                             : analyzer.lastErrorMessage)
         }
 
-        return BPMAnalysisResult(
+        return (
+            bpm: BPMAnalysisResult(
                 bpm: result.bpm,
                 firstBeatFrame: result.firstBeatFrame >= 0 ? result.firstBeatFrame : nil,
                 sampleRate: result.sampleRate,
-                rawBeatFrames: result.rawBeatFrames.map(\.doubleValue))
+                rawBeatFrames: result.rawBeatFrames.map(\.doubleValue)),
+            key: KeyAnalysisResult(
+                globalKeyID: result.keyResult.globalKeyID,
+                keyText: result.keyResult.keyText,
+                sampleRate: result.keyResult.sampleRate,
+                keyChanges: result.keyResult.keyChanges.map {
+                    KeyChange(keyID: $0.keyID, frame: $0.frame)
+                }))
     }
 }

@@ -116,7 +116,6 @@ final class WorkspaceModel {
         guard let index = tracks.firstIndex(where: { $0.id == trackID }),
               tracks[index].analysisStatus != .analyzing else { return }
 
-        // ponytail: BPM is the only calculation today; both scopes share the existing analyzer.
         tracks[index].hasManuallyAdjustedBPM = false
         switch scope {
         case .all, .bpm:
@@ -176,7 +175,8 @@ final class WorkspaceModel {
             do {
                 let result = try await analysisService.analyze(url: url)
                 guard let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
-                tracks[index].analysis = result
+                tracks[index].analysis = result.bpm
+                tracks[index].keyAnalysis = result.key
                 tracks[index].analysisStatus = .completed
                 saveAutomatically(for: trackID, scope: .all)
             } catch is CancellationError {

@@ -21,9 +21,9 @@ audio-analyzer/
 │   ├── Services/                    # I/O, decoding, and analysis operations
 │   │   ├── Audio/                   # Audio decoding, waveform extraction, metadata I/O
 │   │   └── Analysis/                # Analysis orchestration and language bridge
-│   │       └── Core/                # Standalone C++ BPM algorithm
+│   │       └── Core/                # Standalone C++ BPM and key algorithms
 │   │           └── Vendor/           # Upstream third-party source and licenses
-│   │               └── qm-dsp/       # QM-DSP onset and tempo tracking subset
+│   │               └── qm-dsp/       # QM-DSP onset, tempo, and key subset
 │   │                   └── ext/     # Dependencies bundled by QM-DSP
 │   │                       └── kissfft/ # FFT implementation used by QM-DSP
 │   ├── Views/                       # App-level settings and other shared views
@@ -83,11 +83,11 @@ WorkspaceModel.importTracks(from:)
                 ↓
         AudioFileDecoder / AVAudioConverter
                 ↓ source-rate, interleaved stereo float32 PCM
-        MixxxBPMAnalyzerBridge
-                ↓
-        MixxxBpmAnalyzer (QM-DSP tempo tracker)
-                ↓
-        BPMAnalysisResult
+         MixxxBPMAnalyzerBridge
+                 ↓
+         MixxxBpmAnalyzer + MixxxKeyAnalyzer (QM-DSP)
+                 ↓
+         BPMAnalysisResult + KeyAnalysisResult
                 ↓
         WorkspaceModel → TrackListView / WaveformView
 ```
@@ -230,7 +230,7 @@ are part of the result and must not be changed casually:
 ## Current boundaries
 
 The current implementation intentionally does not provide persistent analysis
-or caching, key detection, stem-specific semantics, the legacy SoundTouch
-analyzer, or a variable-tempo beat-grid UI. A new feature in one of these areas
-should first define its state, persistence, and compatibility requirements
-instead of quietly changing the existing fixed-tempo flow.
+or caching, stem-specific semantics, the legacy SoundTouch analyzer, or a
+variable-tempo beat-grid UI. Key detection follows Mixxx's default
+`qm-keydetector:2` path and is calculated alongside BPM from the same decoded
+PCM stream; key metadata persistence is not included.

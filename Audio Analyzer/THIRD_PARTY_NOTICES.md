@@ -1,6 +1,6 @@
 # Third-party notices
 
-The required QM-DSP and KissFFT subset is vendored under `Services/Analysis/Core/Vendor/qm-dsp`. It follows the implementations used by the upstream [Mixxx repository](https://github.com/mixxxdj/mixxx). Preserve the copyright notices and license texts included with the vendored source.
+The required QM-DSP and KissFFT subset is vendored under `Services/Analysis/Core/Vendor/qm-dsp`. It follows the implementations used by the upstream [Mixxx repository](https://github.com/mixxxdj/mixxx), including the tempo-tracking and `qm-keydetector:2` key-detection paths. Preserve the copyright notices and license texts included with the vendored source.
 
 - [Mixxx GPL v2 notice](https://github.com/mixxxdj/mixxx/blob/main/COPYING)
 - [Mixxx license](https://github.com/mixxxdj/mixxx/blob/main/LICENSE)
