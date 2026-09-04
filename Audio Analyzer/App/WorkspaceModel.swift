@@ -276,7 +276,7 @@ final class WorkspaceModel {
             do {
                 let result = try await analysisService.analyze(url: url) { progress in
                     Task { [weak self] in
-                        self?.setAnalysisProgress(progress, for: trackID)
+                        await self?.setAnalysisProgress(progress, for: trackID)
                     }
                 }
                 guard let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
