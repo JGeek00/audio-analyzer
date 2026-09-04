@@ -20,15 +20,16 @@ final class TrackAnalysisService {
 
     func analyze(
             url: URL,
-            settings: ReplayGainSettings = .current()
+            settings: ReplayGainSettings = .current(),
+            onProgress: @Sendable @escaping (Double) -> Void = { _ in }
     ) async throws -> (bpm: BPMAnalysisResult, key: KeyAnalysisResult, replayGain: ReplayGainResult) {
         try await withCheckedThrowingContinuation {
             (continuation: CheckedContinuation<
                     (bpm: BPMAnalysisResult, key: KeyAnalysisResult, replayGain: ReplayGainResult), Error>) in
             queue.addOperation {
                 do {
-                    continuation.resume(
-                        returning: try Self.analyzeSynchronously(url: url, settings: settings))
+                    continuation.resume(returning: try Self.analyzeSynchronously(
+                        url: url, settings: settings, onProgress: onProgress))
                 } catch {
                     continuation.resume(throwing: error)
                 }
@@ -38,7 +39,8 @@ final class TrackAnalysisService {
 
     private static func analyzeSynchronously(
             url: URL,
-            settings: ReplayGainSettings) throws -> (
+            settings: ReplayGainSettings,
+            onProgress: @Sendable (Double) -> Void) throws -> (
             bpm: BPMAnalysisResult, key: KeyAnalysisResult, replayGain: ReplayGainResult) {
         let hasSecurityScope = url.startAccessingSecurityScopedResource()
         defer {
@@ -61,7 +63,14 @@ final class TrackAnalysisService {
             throw TrackAnalysisError(message: "Invalid sample rate for \(url.lastPathComponent).")
         }
 
-        _ = try AudioFileDecoder().forEachStereoChunk(in: file) { data, _ in
+        // ponytail: integer-percent throttle caps MainActor hops at ~100/file.
+        var lastReportedPercent = -1
+        _ = try AudioFileDecoder().forEachStereoChunk(in: file) { data, progress in
+            let percent = Int((progress * 100).rounded(.down))
+            if percent != lastReportedPercent {
+                lastReportedPercent = percent
+                onProgress(progress)
+            }
             guard analyzer.processSamples(data) else {
                 throw TrackAnalysisError(
                         message: analyzer.lastErrorMessage.isEmpty

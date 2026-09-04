@@ -269,11 +269,16 @@ final class WorkspaceModel {
         guard let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
         let url = tracks[index].url
         tracks[index].analysisStatus = .analyzing
+        tracks[index].analysisProgress = 0
 
         Task { [weak self] in
             guard let self else { return }
             do {
-                let result = try await analysisService.analyze(url: url)
+                let result = try await analysisService.analyze(url: url) { progress in
+                    Task { [weak self] in
+                        self?.setAnalysisProgress(progress, for: trackID)
+                    }
+                }
                 guard let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
                 switch scope {
                 case .all:
@@ -288,14 +293,23 @@ final class WorkspaceModel {
                     tracks[index].replayGainAnalysis = result.replayGain
                 }
                 tracks[index].analysisStatus = .completed
+                tracks[index].analysisProgress = nil
                 saveAutomatically(for: trackID, scope: scope)
             } catch is CancellationError {
                 guard let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
                 tracks[index].analysisStatus = .queued
+                tracks[index].analysisProgress = nil
             } catch {
                 guard let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
                 tracks[index].analysisStatus = .failed(error.localizedDescription)
+                tracks[index].analysisProgress = nil
             }
         }
+    }
+
+    private func setAnalysisProgress(_ progress: Double, for trackID: AudioTrack.ID) {
+        guard let index = tracks.firstIndex(where: { $0.id == trackID }),
+              tracks[index].analysisStatus == .analyzing else { return }
+        tracks[index].analysisProgress = progress
     }
 }

@@ -28,9 +28,9 @@ struct TrackListView: View {
                     if track.isProcessing {
                         Rectangle()
                             .fill(.black.opacity(0.75))
-                        ProgressView()
-                            .controlSize(.small)
-                            .tint(.white)
+                        // ponytail: static pie redraws instead of a spinner —
+                        // indeterminate indicators freeze inside Table cells.
+                        AnalysisRingProgress(progress: track.analysisProgress ?? 0)
                             .accessibilityLabel("Analyzing track")
                     }
                 }
@@ -225,6 +225,21 @@ struct TrackListView: View {
 
     private func replayGainLabel(_ gainDB: Double) -> String {
         String(format: "%+.2f dB", gainDB)
+    }
+}
+
+private struct AnalysisRingProgress: View {
+    let progress: Double
+
+    var body: some View {
+        ZStack {
+            Circle().stroke(.white.opacity(0.25), lineWidth: 2.5)
+            Circle()
+                .trim(from: 0, to: min(max(progress, 0.001), 1))
+                .stroke(.white, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+        }
+        .frame(width: 16, height: 16)
     }
 }
 

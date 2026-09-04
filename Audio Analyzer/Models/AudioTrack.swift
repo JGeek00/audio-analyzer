@@ -13,6 +13,7 @@ struct AudioTrack: Identifiable, Hashable {
     var persistedKey: String?
     var persistedReplayGain: Double?
     var analysisStatus: TrackAnalysisStatus = .queued
+    var analysisProgress: Double?
     var hasManuallyAdjustedBPM = false
 
     init(
@@ -28,6 +29,7 @@ struct AudioTrack: Identifiable, Hashable {
             persistedKey: String? = nil,
             persistedReplayGain: Double? = nil,
             analysisStatus: TrackAnalysisStatus = .queued,
+            analysisProgress: Double? = nil,
             hasManuallyAdjustedBPM: Bool = false) {
         self.id = id
         self.url = url
@@ -41,6 +43,7 @@ struct AudioTrack: Identifiable, Hashable {
         self.persistedKey = persistedKey
         self.persistedReplayGain = persistedReplayGain
         self.analysisStatus = analysisStatus
+        self.analysisProgress = analysisProgress
         self.hasManuallyAdjustedBPM = hasManuallyAdjustedBPM
     }
 
