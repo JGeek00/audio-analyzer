@@ -5,7 +5,7 @@ struct WaveformEditorView: View {
     let waveform: [WaveformPeak]
     let amplitudeScale: Float
     let lowPerformanceMode: Bool
-    let player: AVAudioPlayer?
+    let player: WaveformAudioPlayer?
     let isPlaying: Bool
     let dimPlayed: Bool
     let showBeatMarkers: Bool

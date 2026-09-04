@@ -7,7 +7,7 @@ struct WaveformView: View {
 
     @State private var waveform: [WaveformPeak] = []
     @State private var maximumRMS: Float = 0.0001
-    @State private var player: AVAudioPlayer?
+    @State private var player: WaveformAudioPlayer?
     @State private var loadedScopedURL: URL?
     @State private var currentTime: TimeInterval = 0
     @State private var isPlaying = false
@@ -124,9 +124,7 @@ struct WaveformView: View {
 
             let hasSecurityScope = track.url.startAccessingSecurityScopedResource()
             do {
-                let audioPlayer = try AVAudioPlayer(contentsOf: track.url)
-                audioPlayer.prepareToPlay()
-                player = audioPlayer
+                player = try WaveformAudioPlayer(contentsOf: track.url)
                 loadedScopedURL = hasSecurityScope ? track.url : nil
                 isLoading = false
             } catch {

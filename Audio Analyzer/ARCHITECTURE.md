@@ -99,7 +99,7 @@ send actions back to the model.
 ### Waveform and playback
 
 When a track is selected, `WaveformView` loads waveform peaks through the audio
-decoder and creates an `AVAudioPlayer` for playback. `WaveformEditorView`
+decoder and creates a `WaveformAudioPlayer` for playback. `WaveformEditorView`
 composes the zoomed view, overview, controls, and progress. `WaveformCanvas`
 does the drawing and exposes a slider-based accessibility representation.
 

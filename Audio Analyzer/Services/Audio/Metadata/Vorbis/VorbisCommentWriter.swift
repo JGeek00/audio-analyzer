@@ -43,7 +43,7 @@ enum VorbisCommentWriter {
             }
             offset = commentEnd
         }
-        guard offset == payload.count else {
+        guard payload[offset...].allSatisfy({ $0 == 0 }) else {
             throw AudioMetadataWriterError.unsupportedFileType(fileExtension)
         }
 
