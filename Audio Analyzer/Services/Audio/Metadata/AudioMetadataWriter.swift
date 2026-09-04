@@ -8,7 +8,7 @@ final class AudioMetadataWriter {
             replayGain: ReplayGainTagRequest? = nil,
             to url: URL,
             scope: TrackValueScope = .all,
-            progress: @Sendable (Double) -> Void = { _ in }) async throws {
+            onProgress: @Sendable @escaping (Double) -> Void = { _ in }) async throws {
         let hasSecurityScope = url.startAccessingSecurityScopedResource()
         defer {
             if hasSecurityScope {
@@ -20,20 +20,24 @@ final class AudioMetadataWriter {
         switch url.pathExtension.lowercased() {
         case "mp3":
             try ID3MetadataWriter.write(
-                to: url, bpm: values.bpm, key: values.key, replayGain: values.replayGain)
+                to: url, bpm: values.bpm, key: values.key, replayGain: values.replayGain,
+                onProgress: onProgress)
         case "aif", "aiff", "aifc":
             try AIFFMetadataWriter.write(
-                to: url, bpm: values.bpm, key: values.key, replayGain: values.replayGain)
+                to: url, bpm: values.bpm, key: values.key, replayGain: values.replayGain,
+                onProgress: onProgress)
         case "flac":
             try FLACMetadataWriter.write(
-                to: url, bpm: values.bpm, key: values.key, replayGain: values.replayGain)
+                to: url, bpm: values.bpm, key: values.key, replayGain: values.replayGain,
+                onProgress: onProgress)
         case "ogg", "oga", "opus":
             try OggMetadataWriter.write(
                 to: url, bpm: values.bpm, key: values.key, replayGain: values.replayGain,
-                onProgress: progress)
+                onProgress: onProgress)
         default:
             try await AVFoundationMetadataWriter.write(
-                to: url, bpm: values.bpm, key: values.key, replayGain: values.replayGain)
+                to: url, bpm: values.bpm, key: values.key, replayGain: values.replayGain,
+                onProgress: onProgress)
         }
     }
 

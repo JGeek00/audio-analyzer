@@ -2,7 +2,8 @@ import Foundation
 
 enum ID3MetadataWriter {
     static func write(
-            to url: URL, bpm: Double?, key: String?, replayGain: ReplayGainTagRequest? = nil) throws {
+            to url: URL, bpm: Double?, key: String?, replayGain: ReplayGainTagRequest? = nil,
+            onProgress: @Sendable (Double) -> Void = { _ in }) throws {
         let input = [UInt8](try Data(contentsOf: url))
         var tagEnd = 0
         if input.count >= 10, String(decoding: input[0..<3], as: UTF8.self) == "ID3" {
@@ -22,7 +23,9 @@ enum ID3MetadataWriter {
             key: key,
             replayGain: replayGain
         )
+        onProgress(0.5)
         try Data(tag + Array(input[tagEnd...])).write(to: url, options: .atomic)
+        onProgress(1)
     }
 
     static func makeTag(

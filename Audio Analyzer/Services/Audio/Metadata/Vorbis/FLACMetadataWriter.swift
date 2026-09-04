@@ -2,7 +2,8 @@ import Foundation
 
 enum FLACMetadataWriter {
     static func write(
-            to url: URL, bpm: Double?, key: String?, replayGain: ReplayGainTagRequest? = nil) throws {
+            to url: URL, bpm: Double?, key: String?, replayGain: ReplayGainTagRequest? = nil,
+            onProgress: @Sendable (Double) -> Void = { _ in }) throws {
         let input = [UInt8](try Data(contentsOf: url))
         guard input.count >= 4, Array(input[0..<4]) == Array("fLaC".utf8) else {
             throw AudioMetadataWriterError.unsupportedFileType("flac")
@@ -47,8 +48,7 @@ enum FLACMetadataWriter {
         }
 
         var output = Array("fLaC".utf8)
-        for index in blocks.indices {
-            let header = UInt8(index == blocks.index(before: blocks.endIndex) ? 0x80 : 0)
+        for index in blocks.indices {            let header = UInt8(index == blocks.index(before: blocks.endIndex) ? 0x80 : 0)
                 | blocks[index].type
             let size = blocks[index].payload.count
             guard size <= 0xFF_FFFF else {
@@ -61,6 +61,8 @@ enum FLACMetadataWriter {
             output.append(contentsOf: blocks[index].payload)
         }
         output.append(contentsOf: input[offset...])
+        onProgress(0.5)
         try Data(output).write(to: url, options: .atomic)
+        onProgress(1)
     }
 }

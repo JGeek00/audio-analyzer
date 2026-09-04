@@ -3,7 +3,8 @@ import Foundation
 
 enum AVFoundationMetadataWriter {
     static func write(
-            to url: URL, bpm: Double?, key: String?, replayGain: ReplayGainTagRequest? = nil) async throws {
+            to url: URL, bpm: Double?, key: String?, replayGain: ReplayGainTagRequest? = nil,
+            onProgress: @Sendable @escaping (Double) -> Void = { _ in }) async throws {
         let asset = AVURLAsset(url: url)
         let metadata: [AVMetadataItem]
         do {
@@ -90,7 +91,23 @@ enum AVFoundationMetadataWriter {
                 .appendingPathComponent(".metadata-\(UUID().uuidString).\(url.pathExtension)")
         defer { try? FileManager.default.removeItem(at: replacementDirectory) }
 
+        // ponytail: integer-percent throttle caps MainActor hops; the export
+        // itself owns 0...0.9, post-export patches own the final stretch.
+        let progressPoll = Task { [weak exportSession] in
+            var lastReportedPercent = -1
+            while !Task.isCancelled, let exportSession {
+                try? await Task.sleep(nanoseconds: 100_000_000)
+                let percent = Int((0.9 * Double(exportSession.progress) * 100).rounded(.down))
+                if percent != lastReportedPercent {
+                    lastReportedPercent = percent
+                    onProgress(0.9 * Double(exportSession.progress))
+                }
+            }
+        }
+        defer { progressPoll.cancel() }
+
         try await exportSession.export(to: temporaryURL, as: fileType)
+        progressPoll.cancel()
         if fileType == .wav, let key {
             try WAVMetadataWriter.writeInitialKey(key, to: temporaryURL)
         }
@@ -115,6 +132,7 @@ enum AVFoundationMetadataWriter {
         } catch {
             throw AudioMetadataWriterError.replacementFailed(error.localizedDescription)
         }
+        onProgress(1)
     }
 
     private static func keyIdentifier(for fileType: AVFileType) -> AVMetadataIdentifier {

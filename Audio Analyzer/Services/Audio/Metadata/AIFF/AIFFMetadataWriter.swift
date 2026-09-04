@@ -2,7 +2,8 @@ import Foundation
 
 enum AIFFMetadataWriter {
     static func write(
-            to url: URL, bpm: Double?, key: String?, replayGain: ReplayGainTagRequest? = nil) throws {
+            to url: URL, bpm: Double?, key: String?, replayGain: ReplayGainTagRequest? = nil,
+            onProgress: @Sendable (Double) -> Void = { _ in }) throws {
         let input = [UInt8](try Data(contentsOf: url))
         guard input.count >= 12,
               String(decoding: input[0..<4], as: UTF8.self) == "FORM",
@@ -41,7 +42,9 @@ enum AIFFMetadataWriter {
         for index in 0..<4 {
             output[4 + index] = UInt8((formSize >> UInt32((3 - index) * 8)) & 0xff)
         }
+        onProgress(0.5)
         try Data(output).write(to: url, options: .atomic)
+        onProgress(1)
     }
 
     private static func uint32BE(at offset: Int, in bytes: [UInt8]) -> Int {
