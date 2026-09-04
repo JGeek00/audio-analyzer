@@ -2,9 +2,19 @@ import Foundation
 
 enum OggMetadataWriter {
     static func write(
-            to url: URL, bpm: Double?, key: String?, replayGain: ReplayGainTagRequest? = nil) throws {
+            to url: URL, bpm: Double?, key: String?, replayGain: ReplayGainTagRequest? = nil,
+            onProgress: @Sendable (Double) -> Void = { _ in }) throws {
         let fileExtension = url.pathExtension
         let input = [UInt8](try Data(contentsOf: url))
+        // ponytail: integer-percent throttle caps MainActor hops at ~100/file.
+        var lastReportedPercent = -1
+        func report(_ progress: Double) {
+            let percent = Int((min(max(progress, 0), 1) * 100).rounded(.down))
+            if percent != lastReportedPercent {
+                lastReportedPercent = percent
+                onProgress(min(max(progress, 0), 1))
+            }
+        }
         var pages: [[UInt8]] = []
         var offset = 0
         while offset < input.count {
@@ -61,6 +71,7 @@ enum OggMetadataWriter {
                     packet.removeAll(keepingCapacity: true)
                 }
             }
+            report(0.7 * Double(pageIndex + 1) / Double(max(pages.count, 1)))
         }
 
         guard let commentStartPage, let commentPacket else {
@@ -204,7 +215,10 @@ enum OggMetadataWriter {
         pages.replaceSubrange(commentStartPage...commentEndPage, with: rebuilt)
         let delta = rebuilt.count - (commentEndPage - commentStartPage + 1)
         if delta != 0 {
-            for index in (commentStartPage + rebuilt.count)..<pages.count {
+            let renumberStart = commentStartPage + rebuilt.count
+            let renumberCount = max(pages.count - renumberStart, 1)
+            var renumbered = 0
+            for index in renumberStart..<pages.count {
                 var page = pages[index]
                 let sequence = UInt32(page[18])
                     | UInt32(page[19]) << 8
@@ -224,6 +238,8 @@ enum OggMetadataWriter {
                     page[22 + byte] = UInt8((checksum >> UInt32(byte * 8)) & 0xff)
                 }
                 pages[index] = page
+                renumbered += 1
+                report(0.7 + 0.25 * Double(renumbered) / Double(renumberCount))
             }
         }
 
@@ -232,6 +248,7 @@ enum OggMetadataWriter {
             output.append(contentsOf: page)
         }
         try Data(output).write(to: url, options: .atomic)
+        report(1)
     }
 
     private static func oggCRC(_ page: [UInt8]) -> UInt32 {

@@ -5,6 +5,8 @@ struct WorkspaceView: View {
     @Bindable var model: WorkspaceModel
     @State private var isShowingImportError = false
     @State private var isShowingClearConfirmation = false
+    @State private var isShowingClearSkippedNotice = false
+    @State private var clearSkippedCount = 0
     @State private var isDropTargeted = false
     @State private var errorTitle = ""
     @State private var importErrorMessage = ""
@@ -33,7 +35,7 @@ struct WorkspaceView: View {
                     if model.hasUnsavedBPMValues || model.hasUnsavedReplayGainValues {
                         isShowingClearConfirmation = true
                     } else {
-                        model.clearTracks()
+                        clearTracks()
                     }
                 } label: {
                     Label("Clear tracks", systemImage: "trash")
@@ -73,10 +75,15 @@ struct WorkspaceView: View {
             .alert("Clear tracks?", isPresented: $isShowingClearConfirmation) {
                 Button("Cancel", role: .cancel) {}
                 Button("Clear tracks", role: .destructive) {
-                    model.clearTracks()
+                    clearTracks()
                 }
             } message: {
                 Text("Some calculated BPM or ReplayGain values have not been saved to metadata. Are you sure you want to clear all tracks?")
+            }
+            .alert("Clear tracks", isPresented: $isShowingClearSkippedNotice) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("\(clearSkippedCount) track(s) are currently saving metadata and were kept in the list.")
             }
 
             TrackListView(
@@ -137,6 +144,14 @@ struct WorkspaceView: View {
             importErrorMessage = message
             isShowingImportError = true
             model.autoSaveErrorMessage = nil
+        }
+    }
+
+    private func clearTracks() {
+        let skipped = model.clearTracks()
+        if skipped > 0 {
+            clearSkippedCount = skipped
+            isShowingClearSkippedNotice = true
         }
     }
 

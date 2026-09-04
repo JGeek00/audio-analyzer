@@ -30,8 +30,8 @@ struct TrackListView: View {
                             .fill(.black.opacity(0.75))
                         // ponytail: static pie redraws instead of a spinner —
                         // indeterminate indicators freeze inside Table cells.
-                        AnalysisRingProgress(progress: track.analysisProgress ?? 0)
-                            .accessibilityLabel("Analyzing track")
+                        AnalysisRingProgress(progress: track.saveProgress ?? track.analysisProgress ?? 0)
+                            .accessibilityLabel(track.isSavingMetadata ? "Saving metadata" : "Analyzing track")
                     }
                 }
                 .frame(width: 28, height: 28)
@@ -130,7 +130,9 @@ struct TrackListView: View {
             }
         }
         .onDeleteCommand {
-            if let selection {
+            if let selection,
+               let track = tracks.first(where: { $0.id == selection }),
+               !track.isSavingMetadata {
                 onRemove(selection)
             }
         }
@@ -145,7 +147,7 @@ struct TrackListView: View {
                             }
                         }
                     }
-                    .disabled(track.analysisStatus != .completed || track.analysis?.hasDetectedBPM != true)
+                    .disabled(track.analysisStatus != .completed || track.analysis?.hasDetectedBPM != true || track.isSavingMetadata)
                 }
                 Section {
                     Menu {
@@ -168,7 +170,7 @@ struct TrackListView: View {
                     } label: {
                         Label("Recalculate...", systemImage: "arrow.circlepath")
                     }
-                    .disabled(track.analysisStatus == .analyzing)
+                    .disabled(track.analysisStatus == .analyzing || track.isSavingMetadata)
                     Menu {
                         Section {
                             Button(TrackValueScope.all.rawValue) {
@@ -194,6 +196,7 @@ struct TrackListView: View {
                     }
                     .disabled(
                         track.analysisStatus != .completed
+                            || track.isSavingMetadata
                             || (track.analysis?.hasDetectedBPM != true
                                 && track.keyAnalysis?.hasDetectedKey != true
                                 && track.replayGainAnalysis?.hasDetectedGain != true))
@@ -204,6 +207,7 @@ struct TrackListView: View {
                     } label: {
                         Label("Remove", systemImage: "trash")
                     }
+                    .disabled(track.isSavingMetadata)
                 }
             }
         }

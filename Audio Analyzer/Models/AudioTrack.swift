@@ -14,6 +14,8 @@ struct AudioTrack: Identifiable, Hashable {
     var persistedReplayGain: Double?
     var analysisStatus: TrackAnalysisStatus = .queued
     var analysisProgress: Double?
+    var isSavingMetadata = false
+    var saveProgress: Double?
     var hasManuallyAdjustedBPM = false
 
     init(
@@ -80,6 +82,10 @@ struct AudioTrack: Identifiable, Hashable {
     }
 
     var isProcessing: Bool {
+        isSavingMetadata || isAnalyzing
+    }
+
+    private var isAnalyzing: Bool {
         switch analysisStatus {
         case .queued, .analyzing:
             true

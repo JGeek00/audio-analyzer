@@ -90,21 +90,30 @@ final class WorkspaceModel {
     }
 
     func removeTrack(id: AudioTrack.ID) {
-        guard let index = tracks.firstIndex(where: { $0.id == id }) else { return }
+        guard let index = tracks.firstIndex(where: { $0.id == id }),
+              !tracks[index].isSavingMetadata else { return }
         tracks.remove(at: index)
         if selectedTrackID == id {
             selectedTrackID = nil
         }
     }
 
-    func clearTracks() {
-        tracks.removeAll()
-        selectedTrackID = nil
+    /// Removes every track except those currently saving metadata.
+    /// - Returns: the number of saving tracks that were kept.
+    @discardableResult
+    func clearTracks() -> Int {
+        let skipped = tracks.filter(\.isSavingMetadata).count
+        tracks.removeAll { !$0.isSavingMetadata }
+        if let selectedTrackID, !tracks.contains(where: { $0.id == selectedTrackID }) {
+            self.selectedTrackID = nil
+        }
+        return skipped
     }
 
     func adjustBPM(for trackID: AudioTrack.ID, using adjustment: BPMAdjustment) {
         guard let index = tracks.firstIndex(where: { $0.id == trackID }),
               tracks[index].analysisStatus == .completed,
+              !tracks[index].isSavingMetadata,
               let analysis = tracks[index].analysis,
               analysis.hasDetectedBPM else { return }
 
@@ -123,6 +132,7 @@ final class WorkspaceModel {
         guard track.analysisStatus == .completed else {
             throw AudioMetadataWriterError.noDetectedMetadata
         }
+        guard !track.isSavingMetadata else { return }
 
         let bpm = track.analysis?.hasDetectedBPM == true ? track.analysis?.bpm : nil
         let key = track.keyAnalysis?.hasDetectedKey == true ? track.keyAnalysis?.keyText : nil
@@ -152,13 +162,31 @@ final class WorkspaceModel {
                 throw AudioMetadataWriterError.noDetectedReplayGain
             }
         }
-        try await AudioMetadataWriter().save(
-            bpm: bpm,
-            key: key,
-            replayGain: replayGain,
-            to: track.url,
-            scope: scope
-        )
+        let url = track.url
+        guard let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
+        tracks[index].isSavingMetadata = true
+        tracks[index].saveProgress = 0
+        defer {
+            if let index = tracks.firstIndex(where: { $0.id == trackID }) {
+                tracks[index].isSavingMetadata = false
+                tracks[index].saveProgress = nil
+            }
+        }
+        // ponytail: the write blocks for seconds on large Ogg files; keep it
+        // off the main actor like analysis work.
+        try await Task.detached(priority: .userInitiated) {
+            try await AudioMetadataWriter().save(
+                bpm: bpm,
+                key: key,
+                replayGain: replayGain,
+                to: url,
+                scope: scope
+            ) { progress in
+                Task { [weak self] in
+                    await self?.setSaveProgress(progress, for: trackID)
+                }
+            }
+        }.value
         guard let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
         if scope == .all || scope == .bpm, let bpm {
             tracks[index].persistedBPM = bpm
@@ -209,7 +237,8 @@ final class WorkspaceModel {
 
     func recalculate(for trackID: AudioTrack.ID, scope: TrackValueScope) {
         guard let index = tracks.firstIndex(where: { $0.id == trackID }),
-              tracks[index].analysisStatus != .analyzing else { return }
+              tracks[index].analysisStatus != .analyzing,
+              !tracks[index].isSavingMetadata else { return }
 
         if scope == .all || scope == .bpm {
             tracks[index].hasManuallyAdjustedBPM = false
@@ -305,6 +334,12 @@ final class WorkspaceModel {
                 tracks[index].analysisProgress = nil
             }
         }
+    }
+
+    private func setSaveProgress(_ progress: Double, for trackID: AudioTrack.ID) {
+        guard let index = tracks.firstIndex(where: { $0.id == trackID }),
+              tracks[index].isSavingMetadata else { return }
+        tracks[index].saveProgress = progress
     }
 
     private func setAnalysisProgress(_ progress: Double, for trackID: AudioTrack.ID) {

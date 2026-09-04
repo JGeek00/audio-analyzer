@@ -7,7 +7,8 @@ final class AudioMetadataWriter {
             key: String? = nil,
             replayGain: ReplayGainTagRequest? = nil,
             to url: URL,
-            scope: TrackValueScope = .all) async throws {
+            scope: TrackValueScope = .all,
+            progress: @Sendable (Double) -> Void = { _ in }) async throws {
         let hasSecurityScope = url.startAccessingSecurityScopedResource()
         defer {
             if hasSecurityScope {
@@ -28,7 +29,8 @@ final class AudioMetadataWriter {
                 to: url, bpm: values.bpm, key: values.key, replayGain: values.replayGain)
         case "ogg", "oga", "opus":
             try OggMetadataWriter.write(
-                to: url, bpm: values.bpm, key: values.key, replayGain: values.replayGain)
+                to: url, bpm: values.bpm, key: values.key, replayGain: values.replayGain,
+                onProgress: progress)
         default:
             try await AVFoundationMetadataWriter.write(
                 to: url, bpm: values.bpm, key: values.key, replayGain: values.replayGain)
