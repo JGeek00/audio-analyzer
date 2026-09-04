@@ -20,10 +20,11 @@ final class TrackAnalysisService {
 
     func analyze(
             url: URL,
-            settings: ReplayGainSettings = .current(),
+            settings: ReplayGainSettings? = nil,
             onProgress: @Sendable @escaping (Double) -> Void = { _ in }
     ) async throws -> (bpm: BPMAnalysisResult, key: KeyAnalysisResult, replayGain: ReplayGainResult) {
-        try await withCheckedThrowingContinuation {
+        let settings = settings ?? .current()
+        return try await withCheckedThrowingContinuation {
             (continuation: CheckedContinuation<
                     (bpm: BPMAnalysisResult, key: KeyAnalysisResult, replayGain: ReplayGainResult), Error>) in
             queue.addOperation {
