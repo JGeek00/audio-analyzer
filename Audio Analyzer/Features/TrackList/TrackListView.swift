@@ -90,7 +90,7 @@ struct TrackListView: View {
                         format: { $0 }
                     )
 
-                    if track.hasPersistedKeyConflict {
+                    if track.hasUnsavedKey {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .foregroundStyle(.orange)
                             .help("Calculated key differs from metadata")

@@ -103,8 +103,17 @@ struct AudioTrack: Identifiable, Hashable {
         return abs(persistedBPM - analysis.bpm) > 0.05
     }
 
-    var hasPersistedKeyConflict: Bool {        guard analysisStatus == .completed,
+    var hasUnsavedKey: Bool {
+        guard analysisStatus == .completed,
               let keyAnalysis,
+              keyAnalysis.hasDetectedKey else { return false }
+        guard let persistedKey,
+              !persistedKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return true }
+        return hasPersistedKeyConflict
+    }
+
+    var hasPersistedKeyConflict: Bool {
+        guard analysisStatus == .completed,              let keyAnalysis,
               keyAnalysis.hasDetectedKey,
               let persistedKey,
               !persistedKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
