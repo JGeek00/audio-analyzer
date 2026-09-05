@@ -1,4 +1,5 @@
 <div align="center">
+  <img src="./ReadmeAssets/icon.webp" alt="App icon" width="100" />
   <h1>Audio Analyzer</h1>
   <p>
     Audio Analyzer is a macOS application that calculates the BPM, musical key,
