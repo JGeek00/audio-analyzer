@@ -30,6 +30,10 @@ final class AudioMetadataWriter {
             try FLACMetadataWriter.write(
                 to: url, bpm: values.bpm, key: values.key, replayGain: values.replayGain,
                 onProgress: onProgress)
+        case "wav":
+            try WAVMetadataWriter.write(
+                to: url, bpm: values.bpm, key: values.key, replayGain: values.replayGain,
+                onProgress: onProgress)
         case "ogg", "oga", "opus":
             try OggMetadataWriter.write(
                 to: url, bpm: values.bpm, key: values.key, replayGain: values.replayGain,

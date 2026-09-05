@@ -48,7 +48,8 @@ enum FLACMetadataWriter {
         }
 
         var output = Array("fLaC".utf8)
-        for index in blocks.indices {            let header = UInt8(index == blocks.index(before: blocks.endIndex) ? 0x80 : 0)
+        for index in blocks.indices {
+            let header = UInt8(index == blocks.index(before: blocks.endIndex) ? 0x80 : 0)
                 | blocks[index].type
             let size = blocks[index].payload.count
             guard size <= 0xFF_FFFF else {

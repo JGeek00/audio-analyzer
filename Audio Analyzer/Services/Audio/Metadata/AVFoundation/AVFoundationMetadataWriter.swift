@@ -108,12 +108,6 @@ enum AVFoundationMetadataWriter {
 
         try await exportSession.export(to: temporaryURL, as: fileType)
         progressPoll.cancel()
-        if fileType == .wav, let key {
-            try WAVMetadataWriter.writeInitialKey(key, to: temporaryURL)
-        }
-        if fileType == .wav, let replayGain {
-            try WAVMetadataWriter.writeReplayGain(replayGain, to: temporaryURL)
-        }
         if fileType == .caf, let replayGain {
             try CAFMetadataWriter.writeReplayGain(replayGain, to: temporaryURL)
         }
@@ -139,8 +133,6 @@ enum AVFoundationMetadataWriter {
         switch fileType {
         case .m4a, .mp4:
             AVMetadataIdentifier(rawValue: "itlk/com.apple.iTunes.initialkey")
-        case .wav:
-            AVMetadataIdentifier(rawValue: "caaf/IKEY")
         default:
             .id3MetadataInitialKey
         }

@@ -114,8 +114,8 @@ writer preserves existing metadata and replaces only the selected BPM and/or
 key items, then safely replaces the original file. A calculated or manually
 adjusted BPM is considered unsaved until that operation succeeds.
 
-Key values use the container's native field: `TKEY` in ID3 (MP3 and AIFF),
-`IKEY` in RIFF/WAV, `----:com.apple.iTunes:initialkey` in MP4/M4A, and `KEY`
+Key values use the container's native field: `TKEY` in ID3 (MP3, AIFF, and
+RIFF/WAV), `----:com.apple.iTunes:initialkey` in MP4/M4A, and `KEY`
 in Vorbis comments (FLAC, OGG, and Opus).
 
 ## General code conventions

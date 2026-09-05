@@ -41,10 +41,9 @@ final class AudioFileDecoder {
         }
 
         let asset = AVAsset(url: url)
-        guard let commonMetadata = try? await asset.load(.commonMetadata) else {
-            return AudioFileMetadata(
-                title: nil, artist: nil, artwork: nil, bpm: nil, key: nil, replayGain: nil)
-        }
+        // ponytail: AVAsset rejects some files AVAudioFile still decodes;
+        // fall through with empty metadata so the manual scans below run.
+        let commonMetadata = (try? await asset.load(.commonMetadata)) ?? []
         let metadata = (try? await asset.load(.metadata)) ?? commonMetadata
 
         func item(for key: AVMetadataKey) -> AVMetadataItem? {
@@ -145,11 +144,23 @@ final class AudioFileDecoder {
             }
             return nil
         }
-        // ponytail: tags always use '.', so Double parses locale-independently.
+        // ponytail: taggers vary (glued units, comma decimals, unicode
+        // minus); be liberal reading, strict writing.
+        func parseGainValue(_ text: String) -> Double? {
+            var token = text.split(whereSeparator: \.isWhitespace).first.map(String.init) ?? ""
+            token = token
+                .replacingOccurrences(of: "−", with: "-")
+                .replacingOccurrences(of: "﹣", with: "-")
+                .replacingOccurrences(of: ",", with: ".")
+            while token.last?.isLetter == true {
+                token.removeLast()
+            }
+            return Double(token)
+        }
         func gainValue(from item: AVMetadataItem?) async -> Double? {
             guard let item,
                   let text = try? await item.load(.stringValue) else { return nil }
-            return Double(text.split(separator: " ").first.map(String.init) ?? "")
+            return parseGainValue(text)
         }
         var replayGain: Double?
         if let item = firstItem(matching: replayGainIdentifiers) {
@@ -166,6 +177,13 @@ final class AudioFileDecoder {
            let data = try? Data(contentsOf: url) {
             // ponytail: AVAsset doesn't surface CAF info entries; parse them.
             replayGain = CAFMetadataWriter.replayGain(in: [UInt8](data))
+        }
+        if replayGain == nil, url.pathExtension.lowercased() == "wav",
+           let data = try? Data(contentsOf: url),
+           let text = WAVMetadataWriter.replayGainText(in: [UInt8](data)) {
+            // ponytail: AVAsset doesn't surface id3 chunks outside the end
+            // of the RIFF walk; scan them directly.
+            replayGain = parseGainValue(text)
         }
         return AudioFileMetadata(
             title: title ?? nil,
