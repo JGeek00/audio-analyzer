@@ -6,6 +6,22 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXAggregateTarget section */
+		0D56D2CE304CD68900EA25A8 /* Make DMG */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 0D56D2D1304CD68900EA25A8 /* Build configuration list for PBXAggregateTarget "Make DMG" */;
+			buildPhases = (
+				0D56D2D2304CD69F00EA25A8 /* ShellScript */,
+			);
+			dependencies = (
+			);
+			name = "Make DMG";
+			packageProductDependencies = (
+			);
+			productName = "Make DMG";
+		};
+/* End PBXAggregateTarget section */
+
 /* Begin PBXBuildFile section */
 		0D56D125304CCA0A00EA25A8 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = F1A91C070000000000000002 /* MarkdownUI */; };
 /* End PBXBuildFile section */
@@ -41,6 +57,11 @@
 			path = ReadmeAssets;
 			sourceTree = "<group>";
 		};
+		0D56D2D3304CD7ED00EA25A8 /* Dist */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Dist;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +79,7 @@
 		0D4674743048963400F71BC3 = {
 			isa = PBXGroup;
 			children = (
+				0D56D2D3304CD7ED00EA25A8 /* Dist */,
 				0D46747F3048963400F71BC3 /* Audio Analyzer */,
 				0D4674823048963400F71BC3 /* README.md */,
 				0D4674833048963400F71BC3 /* LICENSE.md */,
@@ -114,6 +136,9 @@
 					0D46747C3048963400F71BC3 = {
 						CreatedOnToolsVersion = 26.6;
 					};
+					0D56D2CE304CD68900EA25A8 = {
+						CreatedOnToolsVersion = 26.6;
+					};
 				};
 			};
 			buildConfigurationList = 0D4674783048963400F71BC3 /* Build configuration list for PBXProject "Audio Analyzer" */;
@@ -135,6 +160,7 @@
 			projectRoot = "";
 			targets = (
 				0D46747C3048963400F71BC3 /* Audio Analyzer */,
+				0D56D2CE304CD68900EA25A8 /* Make DMG */,
 			);
 		};
 /* End PBXProject section */
@@ -148,6 +174,27 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		0D56D2D2304CD69F00EA25A8 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$PROJECT_DIR/scripts/make-dmg.sh\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		0D4674793048963400F71BC3 /* Sources */ = {
@@ -371,6 +418,26 @@
 			};
 			name = Release;
 		};
+		0D56D2CF304CD68900EA25A8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 38Z3B9TJTR;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		0D56D2D0304CD68900EA25A8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 38Z3B9TJTR;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -388,6 +455,15 @@
 			buildConfigurations = (
 				0D4674893048963500F71BC3 /* Debug */,
 				0D46748A3048963500F71BC3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0D56D2D1304CD68900EA25A8 /* Build configuration list for PBXAggregateTarget "Make DMG" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0D56D2CF304CD68900EA25A8 /* Debug */,
+				0D56D2D0304CD68900EA25A8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
