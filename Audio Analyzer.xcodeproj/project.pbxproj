@@ -277,7 +277,8 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Audio Analyzer/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Audio Analyzer";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSMultipleInstancesProhibited = YES;
@@ -317,7 +318,8 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Audio Analyzer/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Audio Analyzer";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSMultipleInstancesProhibited = YES;

@@ -12,6 +12,7 @@
 ## Features
 
 - Import one or more files using the file picker or by dragging them into the track list.
+- Open supported audio files from Finder with **Open With** → **Audio Analyzer**.
 - Read the title, artist, artwork, and stored BPM, musical key, and ReplayGain from file metadata.
 - Automatically analyze each track's tempo, key, and ReplayGain, and show its analysis status, sample rate, detected BPM, key, and ReplayGain.
 - View an overview waveform and a zoomed waveform with beat markers.
