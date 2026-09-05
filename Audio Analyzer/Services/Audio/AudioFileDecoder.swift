@@ -58,12 +58,29 @@ final class AudioFileDecoder {
         let title = try? await item(for: .commonKeyTitle)?.load(.stringValue)
         let artist = try? await item(for: .commonKeyArtist)?.load(.stringValue)
         let artwork = try? await item(for: .commonKeyArtwork)?.load(.dataValue)
-        let bpmItem = metadata.first {
-            $0.identifier == .id3MetadataBeatsPerMinute
-                || $0.identifier == .iTunesMetadataBeatsPerMin
+        let bpmIdentifiers = [
+            AVMetadataIdentifier.id3MetadataBeatsPerMinute,
+            AVMetadataIdentifier.iTunesMetadataBeatsPerMin,
+            AVMetadataIdentifier(rawValue: "vorb/BPM"),
+            AVMetadataIdentifier(rawValue: "vorb/TEMPO"),
+            AVMetadataIdentifier(rawValue: "vorbis/BPM"),
+            AVMetadataIdentifier(rawValue: "vorbis/TEMPO")
+        ]
+        let bpmItem = metadata.first { item in
+            if let identifier = item.identifier, bpmIdentifiers.contains(identifier) {
+                return true
+            }
+            return false
         }
+        // ponytail: Vorbis BPM arrives as text ("128.5"), not a number.
         let bpm: Double? = if let bpmItem {
-            (try? await bpmItem.load(.numberValue))?.doubleValue
+            if let number = try? await bpmItem.load(.numberValue) {
+                number.doubleValue
+            } else if let text = try? await bpmItem.load(.stringValue) {
+                Double(text)
+            } else {
+                nil
+            }
         } else {
             nil
         }
