@@ -16,6 +16,8 @@ struct PreferencesView: View {
         AppConfiguration.defaultOpusGainMode.rawValue
     @AppStorage(AppStorageKeys.opusForce23) private var opusForce23 =
         AppConfiguration.defaultOpusForce23
+    @AppStorage(AppStorageKeys.analysisCPUUsage) private var cpuUsage =
+        AppConfiguration.defaultAnalysisCPUUsage.rawValue
 
     private var selectedTheme: AppTheme {
         AppTheme(rawValue: theme) ?? AppConfiguration.defaultTheme
@@ -41,6 +43,14 @@ struct PreferencesView: View {
 
                 Toggle("Auto save", isOn: $autoSave)
                     .help("Automatically saves calculated BPM, key and ReplayGain values to metadata.")
+
+                Picker("CPU cores for analysis", selection: $cpuUsage) {
+                    ForEach(AnalysisCPUUsage.allCases) { option in
+                        Text(option.label).tag(option.rawValue)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .help("Maximum share of CPU cores used when analyzing tracks. Applies to newly queued analyses.")
             } header: {
                 Text("General")
             } footer: {

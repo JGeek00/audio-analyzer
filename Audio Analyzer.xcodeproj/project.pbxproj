@@ -29,10 +29,6 @@
 			exceptions = (
 				0D46748B3048963400F71BC3 /* Exceptions for "Audio Analyzer" folder in "Audio Analyzer" target */,
 			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
 			path = "Audio Analyzer";
 			sourceTree = "<group>";
 		};

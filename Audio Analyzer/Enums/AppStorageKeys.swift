@@ -9,4 +9,5 @@ enum AppStorageKeys {
     static let replayGainMaxPeakDB = "replayGainMaxPeakDB"
     static let opusGainMode = "opusGainMode"
     static let opusForce23 = "opusForce23"
+    static let analysisCPUUsage = "analysisCPUUsage"
 }

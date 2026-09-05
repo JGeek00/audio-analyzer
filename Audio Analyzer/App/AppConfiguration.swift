@@ -17,6 +17,7 @@ struct AppConfiguration {
     static let defaultReplayGainMaxPeakDB = 0.0
     static let defaultOpusGainMode = OpusGainMode.standard
     static let defaultOpusForce23 = false
+    static let defaultAnalysisCPUUsage = AnalysisCPUUsage.half
 
     private init() {}
 }

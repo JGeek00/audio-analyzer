@@ -8,10 +8,10 @@ struct TrackAnalysisError: LocalizedError {
 }
 
 final class TrackAnalysisService {
-    // ponytail: OperationQueue gives the required CPU/2 limit without a custom scheduler.
+    // ponytail: OperationQueue gives the required CPU limit without a custom scheduler.
     private let queue: OperationQueue
 
-    init(maxConcurrentOperations: Int = max(1, ProcessInfo.processInfo.activeProcessorCount / 2)) {
+    init(maxConcurrentOperations: Int = AnalysisCPUUsage.current.maxConcurrentOperations) {
         queue = OperationQueue()
         queue.name = "com.jgeek00.BPM-Calculator.track-analysis"
         queue.qualityOfService = .userInitiated
@@ -27,6 +27,8 @@ final class TrackAnalysisService {
         return try await withCheckedThrowingContinuation {
             (continuation: CheckedContinuation<
                     (bpm: BPMAnalysisResult, key: KeyAnalysisResult, replayGain: ReplayGainResult), Error>) in
+            // ponytail: re-read here so a prefs change applies without recreating the service.
+            queue.maxConcurrentOperationCount = AnalysisCPUUsage.current.maxConcurrentOperations
             queue.addOperation {
                 do {
                     continuation.resume(returning: try Self.analyzeSynchronously(
