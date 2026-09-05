@@ -1,6 +1,5 @@
 import Foundation
 import Observation
-import UniformTypeIdentifiers
 
 @Observable
 @MainActor
@@ -9,6 +8,7 @@ final class WorkspaceModel {
     var selectedTrackID: AudioTrack.ID?
     var isImporting = false
     var autoSaveErrorMessage: String?
+    var unsupportedFormatMessage: String?
 
     private let analysisService = TrackAnalysisService()
 
@@ -249,10 +249,24 @@ final class WorkspaceModel {
     func importTracks(from urls: [URL]) {
         var existingPaths = Set(
                 tracks.map { $0.url.resolvingSymlinksInPath().standardizedFileURL.path })
+        let unsupported = urls.filter {
+            $0.isFileURL
+                && !AppConfiguration.supportedAudioExtensions.contains($0.pathExtension.lowercased())
+        }
+        if !unsupported.isEmpty {
+            let extensions = Set(unsupported.map { $0.pathExtension.lowercased() })
+                .subtracting([""]).sorted()
+            let detail = extensions.isEmpty
+                ? ""
+                : " (\(extensions.map { ".\($0)" }.joined(separator: ", ")))"
+            unsupportedFormatMessage =
+                "\(unsupported.count) file(s) with an unsupported format\(detail) were skipped. Supported formats: MP3, FLAC, ALAC, OGG, Opus, WAV."
+        }
         let newURLs = urls.filter { url in
             guard url.isFileURL else { return false }
-            guard let contentType = UTType(filenameExtension: url.pathExtension),
-                  contentType.conforms(to: .audio) else { return false }
+            guard AppConfiguration.supportedAudioExtensions.contains(url.pathExtension.lowercased()) else {
+                return false
+            }
             let path = url.resolvingSymlinksInPath().standardizedFileURL.path
             guard existingPaths.insert(path).inserted else { return false }
             return true

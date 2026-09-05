@@ -122,7 +122,7 @@ struct WorkspaceView: View {
         }
         .fileImporter(
                 isPresented: $model.isImporting,
-                allowedContentTypes: [.audio],
+                allowedContentTypes: AppConfiguration.supportedAudioContentTypes,
                 allowsMultipleSelection: true) { result in
             switch result {
             case .success(let urls):
@@ -144,6 +144,13 @@ struct WorkspaceView: View {
             importErrorMessage = message
             isShowingImportError = true
             model.autoSaveErrorMessage = nil
+        }
+        .onChange(of: model.unsupportedFormatMessage) { _, message in
+            guard let message else { return }
+            errorTitle = "Unsupported format"
+            importErrorMessage = message
+            isShowingImportError = true
+            model.unsupportedFormatMessage = nil
         }
     }
 

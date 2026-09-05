@@ -174,7 +174,10 @@ in Vorbis comments (FLAC, OGG, and Opus).
 - Every user-selected security-scoped URL must balance
   `startAccessingSecurityScopedResource()` with
   `stopAccessingSecurityScopedResource()`, normally using `defer`.
-- Validate file URLs and audio types at the import boundary. Deduplicate using
+- Validate file URLs and audio types at the import boundary. Only MP3, FLAC,
+  ALAC (M4A), OGG, Opus, and WAV are supported (`AppConfiguration`
+  is the single source of truth); anything else is rejected with an
+  unsupported-format alert. Deduplicate using
   standardized, symlink-resolved paths before creating track state.
 - Propagate failures to the model and present them through the existing alert
   pattern. Do not silently convert a failed analysis into a successful result.
