@@ -9,12 +9,14 @@ struct TrackListView: View {
     let onSaveMetadata: (AudioTrack.ID, TrackValueScope) -> Void
     let onRecalculate: (AudioTrack.ID, TrackValueScope) -> Void
     @State private var sortOrder: [KeyPathComparator<AudioTrack>] = []
+    // ponytail: rows re-render on every progress tick; decode each cover once.
+    @State private var artworkCache = NSCache<NSString, NSImage>()
 
     var body: some View {
         Table(sortedTracks, selection: $selection, sortOrder: $sortOrder) {
             TableColumn("Artwork") { track in
                 ZStack {
-                    if let artwork = track.artwork, let image = NSImage(data: artwork) {
+                    if let image = artworkImage(for: track) {
                         Image(nsImage: image)
                             .resizable()
                             .scaledToFit()
@@ -228,6 +230,15 @@ struct TrackListView: View {
 
     private var sortedTracks: [AudioTrack] {
         tracks.sorted(using: sortOrder)
+    }
+
+    private func artworkImage(for track: AudioTrack) -> NSImage? {
+        guard let data = track.artwork else { return nil }
+        let key = track.id.uuidString as NSString
+        if let cached = artworkCache.object(forKey: key) { return cached }
+        guard let image = NSImage(data: data) else { return nil }
+        artworkCache.setObject(image, forKey: key)
+        return image
     }
 
     private func sampleRate(for track: AudioTrack) -> String {

@@ -33,6 +33,14 @@ final class AudioFileDecoder {
     }
 
     func metadata(for url: URL) async -> AudioFileMetadata {
+        // ponytail: CAF/WAV fallbacks read the whole file; keep every
+        // caller off the main actor like waveform() above.
+        await Task.detached(priority: .utility) {
+            await Self.metadataSynchronously(for: url)
+        }.value
+    }
+
+    private static func metadataSynchronously(for url: URL) async -> AudioFileMetadata {
         let hasSecurityScope = url.startAccessingSecurityScopedResource()
         defer {
             if hasSecurityScope {
