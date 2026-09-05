@@ -2,18 +2,24 @@ import AVFoundation
 import Foundation
 
 final class AudioMetadataWriter {
-    // ponytail: sync writers block for seconds on big files; a dedicated
-    // queue keeps them off the cooperative pool (like TrackAnalysisService),
-    // fixed at 2 so any machine stays responsive.
+    // ponytail: sync writers block for seconds, so they run on a dedicated
+    // queue off the cooperative pool (like TrackAnalysisService). Counts come
+    // from the user setting; tag rewrites are disk-bound, so Fast caps at 4.
+    static var maxConcurrentWrites: Int {
+        MetadataWriteConcurrency.current.maxConcurrentWrites
+    }
+
     private static let writeQueue: OperationQueue = {
         let queue = OperationQueue()
         queue.name = "com.jgeek00.BPM-Calculator.metadata-write"
         queue.qualityOfService = .userInitiated
-        queue.maxConcurrentOperationCount = 2
+        queue.maxConcurrentOperationCount = maxConcurrentWrites
         return queue
     }()
 
     static func runBlocking(_ work: @Sendable @escaping () throws -> Void) async throws {
+        // ponytail: re-read here so a prefs change applies without relaunch.
+        writeQueue.maxConcurrentOperationCount = maxConcurrentWrites
         try await withCheckedThrowingContinuation { continuation in
             writeQueue.addOperation {
                 do {

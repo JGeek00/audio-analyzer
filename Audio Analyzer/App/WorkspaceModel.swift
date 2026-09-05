@@ -216,8 +216,7 @@ final class WorkspaceModel {
     func saveMetadata(for scope: TrackValueScope) async throws {
         // ponytail: on error stop feeding but let in-flight saves finish; rethrow the first.
         let ids = tracks.map(\.id)
-        // ponytail: fixed at 2, tag writes are disk-bound past that.
-        let limit = 2
+        let limit = AudioMetadataWriter.maxConcurrentWrites
         var iterator = ids.makeIterator()
         var firstError: Error?
         try await withThrowingTaskGroup(of: Void.self) { group in

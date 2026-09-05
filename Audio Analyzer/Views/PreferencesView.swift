@@ -18,6 +18,8 @@ struct PreferencesView: View {
         AppConfiguration.defaultOpusForce23
     @AppStorage(AppStorageKeys.analysisCPUUsage) private var cpuUsage =
         AppConfiguration.defaultAnalysisCPUUsage.rawValue
+    @AppStorage(AppStorageKeys.metadataWriteConcurrency) private var writeConcurrency =
+        AppConfiguration.defaultMetadataWriteConcurrency.rawValue
 
     private var selectedTheme: AppTheme {
         AppTheme(rawValue: theme) ?? AppConfiguration.defaultTheme
@@ -51,10 +53,18 @@ struct PreferencesView: View {
                 }
                 .pickerStyle(.segmented)
                 .help("Maximum share of CPU cores used when analyzing tracks. Applies to newly queued analyses.")
+
+                Picker("Metadata writing", selection: $writeConcurrency) {
+                    ForEach(MetadataWriteConcurrency.allCases) { option in
+                        Text(option.label).tag(option.rawValue)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .help("Files written at once when saving metadata. Responsive writes one at a time and keeps the app smooth; Fast writes up to four at once.")
             } header: {
                 Text("General")
             } footer: {
-                Text("Automatically saves calculated values after analysis and manually adjusted BPM after each change.")
+                Text("• **Auto save** writes calculated values after analysis, and manually adjusted BPM after each change.\n• **CPU cores** limits the cores used for analysis.\n• **Metadata writing** sets how many files save at once: Responsive writes one at a time and keeps the app smooth, Fast writes up to four at once.")
             }
 
             Section {
@@ -144,7 +154,7 @@ struct PreferencesView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 500, height: 680)
+        .frame(width: 500, height: 720)
         .preferredColorScheme(selectedTheme.colorScheme)
     }
 }

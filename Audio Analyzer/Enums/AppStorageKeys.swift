@@ -10,4 +10,5 @@ enum AppStorageKeys {
     static let opusGainMode = "opusGainMode"
     static let opusForce23 = "opusForce23"
     static let analysisCPUUsage = "analysisCPUUsage"
+    static let metadataWriteConcurrency = "metadataWriteConcurrency"
 }

@@ -18,6 +18,7 @@ struct AppConfiguration {
     static let defaultOpusGainMode = OpusGainMode.standard
     static let defaultOpusForce23 = false
     static let defaultAnalysisCPUUsage = AnalysisCPUUsage.half
+    static let defaultMetadataWriteConcurrency = MetadataWriteConcurrency.balanced
 
     private init() {}
 }
