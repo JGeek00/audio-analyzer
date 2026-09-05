@@ -27,20 +27,21 @@ enum BPMAdjustment: CaseIterable, Identifiable {
         }
     }
 
+    // ponytail: pre-localized String so menus show es without view changes.
     var label: String {
         switch self {
         case .half:
-            "Reducir a la mitad los BPM"
+            String(localized: "Halve BPM")
         case .twoThirds:
-            "2/3 BPM"
+            String(localized: "2/3 BPM")
         case .threeFourths:
-            "3/4 BPM"
+            String(localized: "3/4 BPM")
         case .fourThirds:
-            "4/3 BPM"
+            String(localized: "4/3 BPM")
         case .threeHalves:
-            "3/2 BPM"
+            String(localized: "3/2 BPM")
         case .doubleBPM:
-            "Duplicar BPM"
+            String(localized: "Double BPM")
         }
     }
 

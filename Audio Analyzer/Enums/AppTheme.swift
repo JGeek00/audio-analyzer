@@ -10,11 +10,11 @@ enum AppTheme: String, CaseIterable, Identifiable {
     var label: String {
         switch self {
         case .system:
-            "System defined"
+            String(localized: "System defined")
         case .light:
-            "Light"
+            String(localized: "Light")
         case .dark:
-            "Dark"
+            String(localized: "Dark")
         }
     }
 

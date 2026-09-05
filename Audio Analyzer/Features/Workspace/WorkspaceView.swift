@@ -48,20 +48,20 @@ struct WorkspaceView: View {
 
                 Menu {
                     Section {
-                        Button(TrackValueScope.all.rawValue) {
+                        Button(TrackValueScope.all.label) {
                             saveMetadata(for: .all)
                         }
                     }
                     Section {
-                        Button(TrackValueScope.bpm.rawValue) {
+                        Button(TrackValueScope.bpm.label) {
                             saveMetadata(for: .bpm)
                         }
                         .disabled(!model.canSaveMetadata(for: .bpm))
-                        Button(TrackValueScope.key.rawValue) {
+                        Button(TrackValueScope.key.label) {
                             saveMetadata(for: .key)
                         }
                         .disabled(!model.canSaveMetadata(for: .key))
-                        Button(TrackValueScope.replayGain.rawValue) {
+                        Button(TrackValueScope.replayGain.label) {
                             saveMetadata(for: .replayGain)
                         }
                         .disabled(!model.canSaveMetadata(for: .replayGain))
@@ -140,7 +140,7 @@ struct WorkspaceView: View {
             case .success(let urls):
                 model.importTracks(from: urls)
             case .failure(let error):
-                errorTitle = "Could not import tracks"
+                errorTitle = String(localized: "Could not import tracks")
                 importErrorMessage = error.localizedDescription
                 isShowingImportError = true
             }
@@ -152,14 +152,14 @@ struct WorkspaceView: View {
         }
         .onChange(of: model.autoSaveErrorMessage) { _, message in
             guard let message else { return }
-            errorTitle = "Could not save metadata"
+            errorTitle = String(localized: "Could not save metadata")
             importErrorMessage = message
             isShowingImportError = true
             model.autoSaveErrorMessage = nil
         }
         .onChange(of: model.unsupportedFormatMessage) { _, message in
             guard let message else { return }
-            errorTitle = "Unsupported format"
+            errorTitle = String(localized: "Unsupported format")
             importErrorMessage = message
             isShowingImportError = true
             model.unsupportedFormatMessage = nil

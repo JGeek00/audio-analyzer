@@ -90,14 +90,14 @@ struct PreferencesView: View {
                     Text("Target loudness")
                         .frame(maxWidth: .infinity, alignment: .leading)
                     TextField(
-                        "",
+                        String(),
                         value: $targetLUFS,
                         format: .number.precision(.fractionLength(0))
                     )
                     .textFieldStyle(.roundedBorder)
                     .frame(width: 56)
                     .multilineTextAlignment(.trailing)
-                    Stepper("", value: $targetLUFS, in: (-30)...(-6), step: 1)
+                    Stepper(String(), value: $targetLUFS, in: (-30)...(-6), step: 1)
                         .labelsHidden()
                     Text("LUFS")
                         .foregroundStyle(.secondary)
@@ -115,7 +115,7 @@ struct PreferencesView: View {
                     Text("Max Peak")
                         .frame(maxWidth: .infinity, alignment: .leading)
                     TextField(
-                        "",
+                        String(),
                         value: $maxPeakDB,
                         format: .number.precision(.fractionLength(1))
                     )
@@ -123,7 +123,7 @@ struct PreferencesView: View {
                     .frame(width: 56)
                     .multilineTextAlignment(.trailing)
                     .disabled(selectedClipMode == .disabled)
-                    Stepper("", value: $maxPeakDB, in: (-12)...0, step: 0.5)
+                    Stepper(String(), value: $maxPeakDB, in: (-12)...0, step: 0.5)
                         .labelsHidden()
                         .disabled(selectedClipMode == .disabled)
                     Text("dB")

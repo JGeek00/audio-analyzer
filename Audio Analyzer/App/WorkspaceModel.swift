@@ -91,13 +91,13 @@ final class WorkspaceModel {
 
         var messages: [String] = []
         if processingCount > 0 {
-            messages.append("\(processingCount) track(s) are still being processed.")
+            messages.append(String(localized: "\(processingCount) track(s) are still being processed."))
         }
         if unsavedBPMCount > 0 {
-            messages.append("\(unsavedBPMCount) track(s) have BPM values that are not saved in metadata.")
+            messages.append(String(localized: "\(unsavedBPMCount) track(s) have BPM values that are not saved in metadata."))
         }
         if unsavedReplayGainCount > 0 {
-            messages.append("\(unsavedReplayGainCount) track(s) have ReplayGain values that are not saved in metadata.")
+            messages.append(String(localized: "\(unsavedReplayGainCount) track(s) have ReplayGain values that are not saved in metadata."))
         }
         return messages.joined(separator: "\n")
     }
@@ -303,8 +303,8 @@ final class WorkspaceModel {
             let detail = extensions.isEmpty
                 ? ""
                 : " (\(extensions.map { ".\($0)" }.joined(separator: ", ")))"
-            unsupportedFormatMessage =
-                "\(unsupported.count) file(s) with an unsupported format\(detail) were skipped. Supported formats: MP3, FLAC, ALAC, OGG, Opus, WAV."
+            unsupportedFormatMessage = String(
+                localized: "\(unsupported.count) file(s) with an unsupported format\(detail) were skipped. Supported formats: MP3, FLAC, ALAC, OGG, Opus, WAV.")
         }
         let newURLs = urls.filter { url in
             guard url.isFileURL else { return false }

@@ -10,11 +10,11 @@ enum MetadataWriteConcurrency: String, CaseIterable, Identifiable {
     var label: String {
         switch self {
         case .responsive:
-            "Responsive"
+            String(localized: "Responsive")
         case .balanced:
-            "Balanced"
+            String(localized: "Balanced")
         case .fast:
-            "Fast"
+            String(localized: "Fast")
         }
     }
 

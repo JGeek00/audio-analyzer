@@ -16,7 +16,7 @@ struct MetadataValueView<Value>: View {
             if let calculatedValue {
                 Text(format(calculatedValue))
             } else {
-                Text("—")
+                Text(verbatim: "—")
             }
         }
     }

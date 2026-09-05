@@ -1,0 +1,1026 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "%lld file(s) with an unsupported format%@ were skipped. Supported formats: MP3, FLAC, ALAC, OGG, Opus, WAV." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld archivo(s) con formato no compatible%@ se omitieron. Formatos compatibles: MP3, FLAC, ALAC, OGG, Opus, WAV."
+          }
+        }
+      }
+    },
+    "%lld track(s) are currently saving metadata and were kept in the list." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld pista(s) están guardando metadatos y se han mantenido en la lista."
+          }
+        }
+      }
+    },
+    "%lld track(s) are still being processed." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld pista(s) aún se están procesando."
+          }
+        }
+      }
+    },
+    "%lld track(s) have BPM values that are not saved in metadata." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld pista(s) tienen valores de BPM no guardados en los metadatos."
+          }
+        }
+      }
+    },
+    "%lld track(s) have ReplayGain values that are not saved in metadata." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld pista(s) tienen valores de ReplayGain no guardados en los metadatos."
+          }
+        }
+      }
+    },
+    "• **Auto save** writes calculated values after analysis, and manually adjusted BPM after each change.\n• **CPU cores** limits the cores used for analysis.\n• **Metadata writing** sets how many files save at once: Responsive writes one at a time and keeps the app smooth, Fast writes up to four at once." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "• **Guardado automático** escribe los valores calculados tras el análisis y el BPM ajustado manualmente tras cada cambio.\n• **Núcleos de CPU** limita los núcleos usados para el análisis.\n• **Escritura de metadatos** define cuántos archivos se guardan a la vez: Reactivo escribe uno a la vez y mantiene la app fluida, Rápido escribe hasta cuatro a la vez."
+          }
+        }
+      }
+    },
+    "2/3 BPM" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2/3 BPM"
+          }
+        }
+      }
+    },
+    "3/2 BPM" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3/2 BPM"
+          }
+        }
+      }
+    },
+    "3/4 BPM" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3/4 BPM"
+          }
+        }
+      }
+    },
+    "4/3 BPM" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "4/3 BPM"
+          }
+        }
+      }
+    },
+    "Add tracks" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadir pistas"
+          }
+        }
+      }
+    },
+    "All" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todo"
+          }
+        }
+      }
+    },
+    "Always reference Opus R128 tags to −23 LUFS" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Referenciar siempre las etiquetas R128 de Opus a −23 LUFS"
+          }
+        }
+      }
+    },
+    "Analyzing track" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analizando pista"
+          }
+        }
+      }
+    },
+    "Artist" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artista"
+          }
+        }
+      }
+    },
+    "Artwork" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carátula"
+          }
+        }
+      }
+    },
+    "Artwork unavailable" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carátula no disponible"
+          }
+        }
+      }
+    },
+    "Audio Analyzer" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audio Analyzer"
+          }
+        }
+      }
+    },
+    "Auto save" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardado automático"
+          }
+        }
+      }
+    },
+    "Automatically saves calculated BPM, key and ReplayGain values to metadata." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guarda automáticamente los valores calculados de BPM, tonalidad y ReplayGain en los metadatos."
+          }
+        }
+      }
+    },
+    "Balanced" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Equilibrado"
+          }
+        }
+      }
+    },
+    "BPM" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "BPM"
+          }
+        }
+      }
+    },
+    "BPM manually adjusted" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "BPM ajustado manualmente"
+          }
+        }
+      }
+    },
+    "Calculated BPM differs from metadata" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El BPM calculado difiere de los metadatos"
+          }
+        }
+      }
+    },
+    "Calculated key differs from metadata" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La tonalidad calculada difiere de los metadatos"
+          }
+        }
+      }
+    },
+    "Calculated ReplayGain differs from metadata" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El ReplayGain calculado difiere de los metadatos"
+          }
+        }
+      }
+    },
+    "Cancel" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelar"
+          }
+        }
+      }
+    },
+    "Ceiling used by clipping protection. 0 dB is digital full scale." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Límite usado por la protección contra recorte. 0 dB es la escala completa digital."
+          }
+        }
+      }
+    },
+    "Clear tracks" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vaciar pistas"
+          }
+        }
+      }
+    },
+    "Clear tracks?" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Vaciar pistas?"
+          }
+        }
+      }
+    },
+    "Clipping protection" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protección contra recorte"
+          }
+        }
+      }
+    },
+    "Compute Opus R128 gains against −23 LUFS instead of the target loudness above." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calcula las ganancias R128 de Opus respecto a −23 LUFS en lugar de la sonoridad objetivo anterior."
+          }
+        }
+      }
+    },
+    "Could not import tracks" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudieron importar las pistas"
+          }
+        }
+      }
+    },
+    "Could not load waveform" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo cargar la forma de onda"
+          }
+        }
+      }
+    },
+    "Could not save metadata" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudieron guardar los metadatos"
+          }
+        }
+      }
+    },
+    "CPU cores for analysis" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Núcleos de CPU para el análisis"
+          }
+        }
+      }
+    },
+    "Dark" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oscuro"
+          }
+        }
+      }
+    },
+    "dB" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dB"
+          }
+        }
+      }
+    },
+    "Dimmed section" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sección atenuada"
+          }
+        }
+      }
+    },
+    "Disabled" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desactivado"
+          }
+        }
+      }
+    },
+    "Double BPM" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duplicar BPM"
+          }
+        }
+      }
+    },
+    "Enabled for all tracks" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activado para todas las pistas"
+          }
+        }
+      }
+    },
+    "Enabled for positive gain values only" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activado solo para ganancias positivas"
+          }
+        }
+      }
+    },
+    "Fast" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rápido"
+          }
+        }
+      }
+    },
+    "Files written at once when saving metadata. Responsive writes one at a time and keeps the app smooth; Fast writes up to four at once." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Archivos que se escriben a la vez al guardar metadatos. Reactivo escribe uno a la vez y mantiene la app fluida; Rápido escribe hasta cuatro a la vez."
+          }
+        }
+      }
+    },
+    "Gain is applied by the player at playback time. Changing these values updates the ReplayGain column instantly, without re-analyzing." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La ganancia la aplica el reproductor durante la reproducción. Cambiar estos valores actualiza al instante la columna ReplayGain, sin reanalizar."
+          }
+        }
+      }
+    },
+    "General" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "General"
+          }
+        }
+      }
+    },
+    "Halve BPM" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reducir a la mitad los BPM"
+          }
+        }
+      }
+    },
+    "Key" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tonalidad"
+          }
+        }
+      }
+    },
+    "Light" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claro"
+          }
+        }
+      }
+    },
+    "Listened part" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parte escuchada"
+          }
+        }
+      }
+    },
+    "Loading waveform…" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cargando forma de onda…"
+          }
+        }
+      }
+    },
+    "Low performance mode" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo de bajo rendimiento"
+          }
+        }
+      }
+    },
+    "Low performance mode reduces waveform resolution and refresh rate to improve performance on less powerful Macs." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El modo de bajo rendimiento reduce la resolución de la forma de onda y la frecuencia de actualización para mejorar el rendimiento en los Mac menos potentes."
+          }
+        }
+      }
+    },
+    "Lowers the calculated gain when applying it would push peaks over Max Peak. Positive-only protects loud tracks without touching quiet ones." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reduce la ganancia calculada cuando aplicarla superaría el Pico máximo. Solo positivos protege las pistas altas sin tocar las suaves."
+          }
+        }
+      }
+    },
+    "LUFS" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LUFS"
+          }
+        }
+      }
+    },
+    "Max Peak" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pico máximo"
+          }
+        }
+      }
+    },
+    "Maximum share of CPU cores used when analyzing tracks. Applies to newly queued analyses." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Porcentaje máximo de núcleos de CPU usado al analizar pistas. Se aplica a los nuevos análisis en cola."
+          }
+        }
+      }
+    },
+    "Metadata save failed" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error al guardar los metadatos"
+          }
+        }
+      }
+    },
+    "Metadata saved" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Metadatos guardados"
+          }
+        }
+      }
+    },
+    "Metadata writing" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escritura de metadatos"
+          }
+        }
+      }
+    },
+    "Modificar BPM" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modificar BPM"
+          }
+        }
+      }
+    },
+    "No tracks" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay pistas"
+          }
+        }
+      }
+    },
+    "No waveform data" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin datos de forma de onda"
+          }
+        }
+      }
+    },
+    "OK" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aceptar"
+          }
+        }
+      }
+    },
+    "Open files…" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir archivos…"
+          }
+        }
+      }
+    },
+    "Opus" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opus"
+          }
+        }
+      }
+    },
+    "Opus files" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Archivos Opus"
+          }
+        }
+      }
+    },
+    "Pause" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausar"
+          }
+        }
+      }
+    },
+    "Play" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reproducir"
+          }
+        }
+      }
+    },
+    "Recalculate..." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recalcular…"
+          }
+        }
+      }
+    },
+    "Reduces waveform resolution and playback refresh rate." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reduce la resolución de la forma de onda y la frecuencia de actualización de la reproducción."
+          }
+        }
+      }
+    },
+    "Reference loudness. Each track's gain is target minus measured loudness. −18 LUFS matches classic ReplayGain; streaming services use −14 to −16." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sonoridad de referencia. La ganancia de cada pista es el objetivo menos la sonoridad medida. −18 LUFS corresponde al ReplayGain clásico; los servicios de streaming usan de −14 a −16."
+          }
+        }
+      }
+    },
+    "Remove" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eliminar"
+          }
+        }
+      }
+    },
+    "ReplayGain" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ReplayGain"
+          }
+        }
+      }
+    },
+    "Responsive" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reactivo"
+          }
+        }
+      }
+    },
+    "Sample rate" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frecuencia de muestreo"
+          }
+        }
+      }
+    },
+    "Save metadata values..." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardar valores de metadatos…"
+          }
+        }
+      }
+    },
+    "Save..." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardar…"
+          }
+        }
+      }
+    },
+    "Saving metadata" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardando metadatos"
+          }
+        }
+      }
+    },
+    "Select a track" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selecciona una pista"
+          }
+        }
+      }
+    },
+    "Select a track to view its waveform." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selecciona una pista para ver su forma de onda."
+          }
+        }
+      }
+    },
+    "Show beat markers" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar marcadores de ritmo"
+          }
+        }
+      }
+    },
+    "Some calculated BPM or ReplayGain values have not been saved to metadata. Are you sure you want to clear all tracks?" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Algunos valores calculados de BPM o ReplayGain no se han guardado en los metadatos. ¿Seguro que quieres vaciar todas las pistas?"
+          }
+        }
+      }
+    },
+    "Standard tags keep Opus files consistent with the rest of the library; R128 tags follow the Opus spec." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las etiquetas estándar mantienen los archivos Opus coherentes con el resto de la biblioteca; las etiquetas R128 siguen la especificación de Opus."
+          }
+        }
+      }
+    },
+    "System defined" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Definido por el sistema"
+          }
+        }
+      }
+    },
+    "Target loudness" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sonoridad objetivo"
+          }
+        }
+      }
+    },
+    "The selected track has no readable audio frames." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La pista seleccionada no tiene fotogramas de audio legibles."
+          }
+        }
+      }
+    },
+    "Theme" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tema"
+          }
+        }
+      }
+    },
+    "Title" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Título"
+          }
+        }
+      }
+    },
+    "Tracks" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pistas"
+          }
+        }
+      }
+    },
+    "Unlistened part" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parte no escuchada"
+          }
+        }
+      }
+    },
+    "Unsupported format" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Formato no compatible"
+          }
+        }
+      }
+    },
+    "Use + to import audio files." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa + para importar archivos de audio."
+          }
+        }
+      }
+    },
+    "Waveform" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forma de onda"
+          }
+        }
+      }
+    },
+    "Waveform zoom" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zoom de la forma de onda"
+          }
+        }
+      }
+    },
+    "Which tag names to write for .opus files. R128_*_GAIN follows RFC 7845." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qué nombres de etiqueta escribir para archivos .opus. R128_*_GAIN sigue la RFC 7845."
+          }
+        }
+      }
+    },
+    "Write both standard and R128 tags" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escribir etiquetas estándar y R128"
+          }
+        }
+      }
+    },
+    "Write R128_*_GAIN tags" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escribir etiquetas R128_*_GAIN"
+          }
+        }
+      }
+    },
+    "Write standard ReplayGain tags" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escribir etiquetas ReplayGain estándar"
+          }
+        }
+      }
+    },
+    "Zoom in" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acercar"
+          }
+        }
+      }
+    },
+    "Zoom out" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alejar"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.2"
+}

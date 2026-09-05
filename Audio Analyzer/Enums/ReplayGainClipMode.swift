@@ -10,11 +10,11 @@ enum ReplayGainClipMode: String, CaseIterable, Identifiable, Sendable {
     var label: String {
         switch self {
         case .disabled:
-            "Disabled"
+            String(localized: "Disabled")
         case .positiveOnly:
-            "Enabled for positive gain values only"
+            String(localized: "Enabled for positive gain values only")
         case .always:
-            "Enabled for all tracks"
+            String(localized: "Enabled for all tracks")
         }
     }
 }

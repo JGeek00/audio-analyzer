@@ -10,11 +10,11 @@ enum OpusGainMode: String, CaseIterable, Identifiable, Sendable {
     var label: String {
         switch self {
         case .standard:
-            "Write standard ReplayGain tags"
+            String(localized: "Write standard ReplayGain tags")
         case .r128:
-            "Write R128_*_GAIN tags"
+            String(localized: "Write R128_*_GAIN tags")
         case .both:
-            "Write both standard and R128 tags"
+            String(localized: "Write both standard and R128 tags")
         }
     }
 

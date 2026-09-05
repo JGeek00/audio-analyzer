@@ -9,9 +9,9 @@ enum WaveformDimming: String, CaseIterable, Identifiable {
     var label: String {
         switch self {
         case .listened:
-            "Listened part"
+            String(localized: "Listened part")
         case .unlistened:
-            "Unlistened part"
+            String(localized: "Unlistened part")
         }
     }
 

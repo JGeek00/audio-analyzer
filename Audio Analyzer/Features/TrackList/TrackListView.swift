@@ -54,7 +54,7 @@ struct TrackListView: View {
             TableColumn("Title", value: \.title)
 
             TableColumn("Artist", value: \.artistName) { track in
-                Text(track.artist ?? "—")
+                Text(verbatim: track.artist ?? "—")
                     .lineLimit(1)
             }
 
@@ -164,18 +164,18 @@ struct TrackListView: View {
                 Section {
                     Menu {
                         Section {
-                            Button(TrackValueScope.all.rawValue) {
+                            Button(TrackValueScope.all.label) {
                                 onRecalculate(trackID, .all)
                             }
                         }
                         Section {
-                            Button(TrackValueScope.bpm.rawValue) {
+                            Button(TrackValueScope.bpm.label) {
                                 onRecalculate(trackID, .bpm)
                             }
-                            Button(TrackValueScope.key.rawValue) {
+                            Button(TrackValueScope.key.label) {
                                 onRecalculate(trackID, .key)
                             }
-                            Button(TrackValueScope.replayGain.rawValue) {
+                            Button(TrackValueScope.replayGain.label) {
                                 onRecalculate(trackID, .replayGain)
                             }
                         }
@@ -185,20 +185,20 @@ struct TrackListView: View {
                     .disabled(track.analysisStatus == .analyzing || track.isSavingMetadata)
                     Menu {
                         Section {
-                            Button(TrackValueScope.all.rawValue) {
+                            Button(TrackValueScope.all.label) {
                                 onSaveMetadata(trackID, .all)
                             }
                         }
                         Section {
-                            Button(TrackValueScope.bpm.rawValue) {
+                            Button(TrackValueScope.bpm.label) {
                                 onSaveMetadata(trackID, .bpm)
                             }
                             .disabled(track.analysis?.hasDetectedBPM != true)
-                            Button(TrackValueScope.key.rawValue) {
+                            Button(TrackValueScope.key.label) {
                                 onSaveMetadata(trackID, .key)
                             }
                             .disabled(track.keyAnalysis?.hasDetectedKey != true)
-                            Button(TrackValueScope.replayGain.rawValue) {
+                            Button(TrackValueScope.replayGain.label) {
                                 onSaveMetadata(trackID, .replayGain)
                             }
                             .disabled(track.replayGainAnalysis?.hasDetectedGain != true)
