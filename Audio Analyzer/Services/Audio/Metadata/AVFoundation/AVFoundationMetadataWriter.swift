@@ -109,10 +109,14 @@ enum AVFoundationMetadataWriter {
         try await exportSession.export(to: temporaryURL, as: fileType)
         progressPoll.cancel()
         if fileType == .caf, let replayGain {
-            try CAFMetadataWriter.writeReplayGain(replayGain, to: temporaryURL)
+            try await AudioMetadataWriter.runBlocking {
+                try CAFMetadataWriter.writeReplayGain(replayGain, to: temporaryURL)
+            }
         }
         if (fileType == .m4a || fileType == .mp4), !sourceHasGaplessMetadata {
-            try MP4GaplessMetadataCleaner.removeGeneratedMetadata(from: temporaryURL)
+            try await AudioMetadataWriter.runBlocking {
+                try MP4GaplessMetadataCleaner.removeGeneratedMetadata(from: temporaryURL)
+            }
         }
 
         do {

@@ -214,8 +214,32 @@ final class WorkspaceModel {
     }
 
     func saveMetadata(for scope: TrackValueScope) async throws {
-        for trackID in tracks.map(\.id) {
-            try await saveMetadata(for: trackID, scope: scope)
+        // ponytail: on error stop feeding but let in-flight saves finish; rethrow the first.
+        let ids = tracks.map(\.id)
+        // ponytail: fixed at 2, tag writes are disk-bound past that.
+        let limit = 2
+        var iterator = ids.makeIterator()
+        var firstError: Error?
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            for _ in 0..<limit {
+                guard let trackID = iterator.next() else { break }
+                group.addTask { @MainActor in
+                    try await self.saveMetadata(for: trackID, scope: scope)
+                }
+            }
+            while !group.isEmpty {
+                do {
+                    try await group.next()
+                } catch {
+                    if firstError == nil { firstError = error }
+                }
+                if firstError == nil, let trackID = iterator.next() {
+                    group.addTask { @MainActor in
+                        try await self.saveMetadata(for: trackID, scope: scope)
+                    }
+                }
+            }
+            if let firstError { throw firstError }
         }
     }
 
