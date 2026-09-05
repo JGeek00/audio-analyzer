@@ -401,6 +401,16 @@
         }
       }
     },
+    "Donate with PayPal" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Donar con PayPal"
+          }
+        }
+      }
+    },
     "Double BPM" : {
       "localizations" : {
         "es" : {
@@ -471,6 +481,16 @@
         }
       }
     },
+    "GitHub" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GitHub"
+          }
+        }
+      }
+    },
     "Halve BPM" : {
       "localizations" : {
         "es" : {
@@ -487,6 +507,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tonalidad"
+          }
+        }
+      }
+    },
+    "License" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Licencia"
+          }
+        }
+      }
+    },
+    "License text unavailable." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Texto de licencia no disponible."
           }
         }
       }
@@ -617,6 +657,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Modificar BPM"
+          }
+        }
+      }
+    },
+    "My apps" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mis apps"
           }
         }
       }

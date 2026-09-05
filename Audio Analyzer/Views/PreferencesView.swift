@@ -34,127 +34,173 @@ struct PreferencesView: View {
     }
 
     var body: some View {
-        Form {
-            Section {
-                Picker("Theme", selection: $theme) {
-                    ForEach(AppTheme.allCases) { theme in
-                        Text(theme.label).tag(theme.rawValue)
+        NavigationStack {
+            Form {
+                Section {
+                    Picker("Theme", selection: $theme) {
+                        ForEach(AppTheme.allCases) { theme in
+                            Text(theme.label).tag(theme.rawValue)
+                        }
                     }
-                }
-                .pickerStyle(.radioGroup)
-
-                Toggle("Auto save", isOn: $autoSave)
-                    .help("Automatically saves calculated BPM, key and ReplayGain values to metadata.")
-
-                Picker("CPU cores for analysis", selection: $cpuUsage) {
-                    ForEach(AnalysisCPUUsage.allCases) { option in
-                        Text(option.label).tag(option.rawValue)
+                    .pickerStyle(.radioGroup)
+    
+                    Toggle("Auto save", isOn: $autoSave)
+                        .help("Automatically saves calculated BPM, key and ReplayGain values to metadata.")
+    
+                    Picker("CPU cores for analysis", selection: $cpuUsage) {
+                        ForEach(AnalysisCPUUsage.allCases) { option in
+                            Text(option.label).tag(option.rawValue)
+                        }
                     }
-                }
-                .pickerStyle(.segmented)
-                .help("Maximum share of CPU cores used when analyzing tracks. Applies to newly queued analyses.")
-
-                Picker("Metadata writing", selection: $writeConcurrency) {
-                    ForEach(MetadataWriteConcurrency.allCases) { option in
-                        Text(option.label).tag(option.rawValue)
+                    .pickerStyle(.segmented)
+                    .help("Maximum share of CPU cores used when analyzing tracks. Applies to newly queued analyses.")
+    
+                    Picker("Metadata writing", selection: $writeConcurrency) {
+                        ForEach(MetadataWriteConcurrency.allCases) { option in
+                            Text(option.label).tag(option.rawValue)
+                        }
                     }
+                    .pickerStyle(.segmented)
+                    .help("Files written at once when saving metadata. Responsive writes one at a time and keeps the app smooth; Fast writes up to four at once.")
+                } header: {
+                    Text("General")
+                } footer: {
+                    Text("• **Auto save** writes calculated values after analysis, and manually adjusted BPM after each change.\n• **CPU cores** limits the cores used for analysis.\n• **Metadata writing** sets how many files save at once: Responsive writes one at a time and keeps the app smooth, Fast writes up to four at once.")
                 }
-                .pickerStyle(.segmented)
-                .help("Files written at once when saving metadata. Responsive writes one at a time and keeps the app smooth; Fast writes up to four at once.")
-            } header: {
-                Text("General")
-            } footer: {
-                Text("• **Auto save** writes calculated values after analysis, and manually adjusted BPM after each change.\n• **CPU cores** limits the cores used for analysis.\n• **Metadata writing** sets how many files save at once: Responsive writes one at a time and keeps the app smooth, Fast writes up to four at once.")
-            }
-
-            Section {
-                Picker("Dimmed section", selection: $waveformDimming) {
-                    ForEach(WaveformDimming.allCases) { option in
-                        Text(option.label).tag(option.rawValue)
+    
+                Section {
+                    Picker("Dimmed section", selection: $waveformDimming) {
+                        ForEach(WaveformDimming.allCases) { option in
+                            Text(option.label).tag(option.rawValue)
+                        }
                     }
+                    .pickerStyle(.radioGroup)
+    
+                    Toggle("Show beat markers", isOn: $showBeatMarkers)
+    
+                    Toggle("Low performance mode", isOn: $lowPerformanceMode)
+                        .help("Reduces waveform resolution and playback refresh rate.")
+                } header: {
+                    Text("Waveform")
+                } footer: {
+                    Text("Low performance mode reduces waveform resolution and refresh rate to improve performance on less powerful Macs.")
                 }
-                .pickerStyle(.radioGroup)
-
-                Toggle("Show beat markers", isOn: $showBeatMarkers)
-
-                Toggle("Low performance mode", isOn: $lowPerformanceMode)
-                    .help("Reduces waveform resolution and playback refresh rate.")
-            } header: {
-                Text("Waveform")
-            } footer: {
-                Text("Low performance mode reduces waveform resolution and refresh rate to improve performance on less powerful Macs.")
-            }
-
-            Section {
-                HStack(spacing: 4) {
-                    Text("Target loudness")
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    TextField(
-                        String(),
-                        value: $targetLUFS,
-                        format: .number.precision(.fractionLength(0))
-                    )
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 56)
-                    .multilineTextAlignment(.trailing)
-                    Stepper(String(), value: $targetLUFS, in: (-30)...(-6), step: 1)
-                        .labelsHidden()
-                    Text("LUFS")
-                        .foregroundStyle(.secondary)
-                }
-                .help("Reference loudness. Each track's gain is target minus measured loudness. −18 LUFS matches classic ReplayGain; streaming services use −14 to −16.")
-
-                Picker("Clipping protection", selection: $clipMode) {
-                    ForEach(ReplayGainClipMode.allCases) { mode in
-                        Text(mode.label).tag(mode.rawValue)
+    
+                Section {
+                    HStack(spacing: 4) {
+                        Text("Target loudness")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        TextField(
+                            String(),
+                            value: $targetLUFS,
+                            format: .number.precision(.fractionLength(0))
+                        )
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 56)
+                        .multilineTextAlignment(.trailing)
+                        Stepper(String(), value: $targetLUFS, in: (-30)...(-6), step: 1)
+                            .labelsHidden()
+                        Text("LUFS")
+                            .foregroundStyle(.secondary)
                     }
-                }
-                .help("Lowers the calculated gain when applying it would push peaks over Max Peak. Positive-only protects loud tracks without touching quiet ones.")
-
-                HStack(spacing: 4) {
-                    Text("Max Peak")
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    TextField(
-                        String(),
-                        value: $maxPeakDB,
-                        format: .number.precision(.fractionLength(1))
-                    )
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 56)
-                    .multilineTextAlignment(.trailing)
-                    .disabled(selectedClipMode == .disabled)
-                    Stepper(String(), value: $maxPeakDB, in: (-12)...0, step: 0.5)
-                        .labelsHidden()
+                    .help("Reference loudness. Each track's gain is target minus measured loudness. −18 LUFS matches classic ReplayGain; streaming services use −14 to −16.")
+    
+                    Picker("Clipping protection", selection: $clipMode) {
+                        ForEach(ReplayGainClipMode.allCases) { mode in
+                            Text(mode.label).tag(mode.rawValue)
+                        }
+                    }
+                    .help("Lowers the calculated gain when applying it would push peaks over Max Peak. Positive-only protects loud tracks without touching quiet ones.")
+    
+                    HStack(spacing: 4) {
+                        Text("Max Peak")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        TextField(
+                            String(),
+                            value: $maxPeakDB,
+                            format: .number.precision(.fractionLength(1))
+                        )
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 56)
+                        .multilineTextAlignment(.trailing)
                         .disabled(selectedClipMode == .disabled)
-                    Text("dB")
-                        .foregroundStyle(.secondary)
-                }
-                .help("Ceiling used by clipping protection. 0 dB is digital full scale.")
-            } header: {
-                Text("ReplayGain")
-            } footer: {
-                Text("Gain is applied by the player at playback time. Changing these values updates the ReplayGain column instantly, without re-analyzing.")
-            }
-
-            Section {
-                Picker("Opus files", selection: $opusMode) {
-                    ForEach(OpusGainMode.allCases) { mode in
-                        Text(mode.label).tag(mode.rawValue)
+                        Stepper(String(), value: $maxPeakDB, in: (-12)...0, step: 0.5)
+                            .labelsHidden()
+                            .disabled(selectedClipMode == .disabled)
+                        Text("dB")
+                            .foregroundStyle(.secondary)
                     }
+                    .help("Ceiling used by clipping protection. 0 dB is digital full scale.")
+                } header: {
+                    Text("ReplayGain")
+                } footer: {
+                    Text("Gain is applied by the player at playback time. Changing these values updates the ReplayGain column instantly, without re-analyzing.")
                 }
-                .help("Which tag names to write for .opus files. R128_*_GAIN follows RFC 7845.")
-
-                Toggle("Always reference Opus R128 tags to −23 LUFS", isOn: $opusForce23)
-                    .disabled(!opusUsesR128)
-                    .help("Compute Opus R128 gains against −23 LUFS instead of the target loudness above.")
-            } header: {
-                Text("Opus")
-            } footer: {
-                Text("Standard tags keep Opus files consistent with the rest of the library; R128 tags follow the Opus spec.")
+    
+                Section {
+                    Picker("Opus files", selection: $opusMode) {
+                        ForEach(OpusGainMode.allCases) { mode in
+                            Text(mode.label).tag(mode.rawValue)
+                        }
+                    }
+                    .help("Which tag names to write for .opus files. R128_*_GAIN follows RFC 7845.")
+    
+                    Toggle("Always reference Opus R128 tags to −23 LUFS", isOn: $opusForce23)
+                        .disabled(!opusUsesR128)
+                        .help("Compute Opus R128 gains against −23 LUFS instead of the target loudness above.")
+                } header: {
+                    Text("Opus")
+                } footer: {
+                    Text("Standard tags keep Opus files consistent with the rest of the library; R128 tags follow the Opus spec.")
+                }
+    
+                NavigationLink {
+                LicensesView()
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "doc.text")
+                    Text("License")
+                }
             }
+
+            HStack(spacing: 12) {
+                    Link(destination: AppURLs.payPalDonation) {
+                        HStack(spacing: 6) {
+                            Image("PayPalLogo")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 16, height: 16)
+                            Text("Donate with PayPal")
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+    
+                    Link(destination: AppURLs.moreApps) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "square.grid.2x2")
+                            Text("My apps")
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+    
+                    Link(destination: AppURLs.gitHubRepo) {
+                        HStack(spacing: 6) {
+                            Image("GitHubLogo")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 16, height: 16)
+                            Text("GitHub")
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                }
+            }
+            .formStyle(.grouped)
+            .frame(width: 500, height: 720)
+            .preferredColorScheme(selectedTheme.colorScheme)
         }
-        .formStyle(.grouped)
-        .frame(width: 500, height: 720)
-        .preferredColorScheme(selectedTheme.colorScheme)
     }
 }

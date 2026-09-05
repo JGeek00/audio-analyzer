@@ -90,6 +90,7 @@
 			);
 			name = "Audio Analyzer";
 			packageProductDependencies = (
+				F1A91C070000000000000002 /* XCSwiftPackageProductDependency "MarkdownUI" */,
 			);
 			productName = "BPM Calculator";
 			productReference = 0D46747D3048963400F71BC3 /* Audio Analyzer.app */;
@@ -120,6 +121,9 @@
 			);
 			mainGroup = 0D4674743048963400F71BC3;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				F1A91C070000000000000001 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 0D46747E3048963400F71BC3 /* Products */;
 			projectDirPath = "";
@@ -149,6 +153,25 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		F1A91C070000000000000001 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/gonzalezreal/swift-markdown-ui";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.4.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F1A91C070000000000000002 /* XCSwiftPackageProductDependency "MarkdownUI" */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F1A91C070000000000000001 /* XCRemoteSwiftPackageReference "swift-markdown-ui" */;
+			productName = MarkdownUI;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		0D4674863048963500F71BC3 /* Debug */ = {
