@@ -13,9 +13,26 @@
 		0D4674843048963400F71BC3 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		0D46748B3048963400F71BC3 /* Exceptions for "Audio Analyzer" folder in "Audio Analyzer" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 0D46747C3048963400F71BC3 /* Audio Analyzer */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		0D46747F3048963400F71BC3 /* Audio Analyzer */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				0D46748B3048963400F71BC3 /* Exceptions for "Audio Analyzer" folder in "Audio Analyzer" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
 			path = "Audio Analyzer";
 			sourceTree = "<group>";
 		};
