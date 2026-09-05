@@ -33,9 +33,21 @@ struct TrackListView: View {
                         AnalysisRingProgress(progress: track.saveProgress ?? track.analysisProgress ?? 0)
                             .accessibilityLabel(track.isSavingMetadata ? "Saving metadata" : "Analyzing track")
                     }
+                    if !track.isProcessing,
+                       track.showSaveConfirmation || track.showSaveFailure {
+                        Rectangle()
+                            .fill(.black.opacity(0.75))
+                            .transition(.opacity)
+                        Image(systemName: track.showSaveFailure ? "xmark.circle" : "checkmark.circle")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(track.showSaveFailure ? .red : .green)
+                            .transition(.opacity)
+                            .accessibilityLabel(track.showSaveFailure ? "Metadata save failed" : "Metadata saved")
+                    }
                 }
                 .frame(width: 28, height: 28)
                 .clipShape(RoundedRectangle(cornerRadius: 4))
+                .animation(.easeOut(duration: 0.6), value: track.showSaveConfirmation || track.showSaveFailure)
             }
             .width(min: 48, ideal: 48, max: 48)
 

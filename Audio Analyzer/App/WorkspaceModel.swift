@@ -179,6 +179,8 @@ final class WorkspaceModel {
         guard let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
         tracks[index].isSavingMetadata = true
         tracks[index].saveProgress = 0
+        tracks[index].showSaveConfirmation = false
+        tracks[index].showSaveFailure = false
         defer {
             if let index = tracks.firstIndex(where: { $0.id == trackID }) {
                 tracks[index].isSavingMetadata = false
@@ -187,29 +189,35 @@ final class WorkspaceModel {
         }
         // ponytail: the write blocks for seconds on large Ogg files; keep it
         // off the main actor like analysis work.
-        try await Task.detached(priority: .userInitiated) {
-            try await AudioMetadataWriter().save(
-                bpm: bpm,
-                key: key,
-                replayGain: replayGain,
-                to: url,
-                scope: scope
-            ) { progress in
-                Task { [weak self] in
-                    await self?.setSaveProgress(progress, for: trackID)
+        do {
+            try await Task.detached(priority: .userInitiated) {
+                try await AudioMetadataWriter().save(
+                    bpm: bpm,
+                    key: key,
+                    replayGain: replayGain,
+                    to: url,
+                    scope: scope
+                ) { progress in
+                    Task { [weak self] in
+                        await self?.setSaveProgress(progress, for: trackID)
+                    }
                 }
+            }.value
+            guard let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
+            if scope == .all || scope == .bpm, let bpm {
+                tracks[index].persistedBPM = bpm
             }
-        }.value
-        guard let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
-        if scope == .all || scope == .bpm, let bpm {
-            tracks[index].persistedBPM = bpm
-        }
-        if scope == .all || scope == .key, let key {
-            tracks[index].persistedKey = key
-        }
-        if scope == .all || scope == .replayGain, let replayGainAnalysis {
-            tracks[index].persistedReplayGain = replayGainAnalysis.gainDB
-            tracks[index].replayGainAnalysis = replayGainAnalysis
+            if scope == .all || scope == .key, let key {
+                tracks[index].persistedKey = key
+            }
+            if scope == .all || scope == .replayGain, let replayGainAnalysis {
+                tracks[index].persistedReplayGain = replayGainAnalysis.gainDB
+                tracks[index].replayGainAnalysis = replayGainAnalysis
+            }
+            flashSaveOutcome(for: trackID, success: true)
+        } catch {
+            flashSaveOutcome(for: trackID, success: false)
+            throw error
         }
     }
 
@@ -383,6 +391,19 @@ final class WorkspaceModel {
                 tracks[index].analysisStatus = .failed(error.localizedDescription)
                 tracks[index].analysisProgress = nil
             }
+        }
+    }
+
+    private func flashSaveOutcome(for trackID: AudioTrack.ID, success: Bool) {
+        guard let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
+        tracks[index].showSaveConfirmation = success
+        tracks[index].showSaveFailure = !success
+        Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 5_000_000_000)
+            guard let self,
+                  let index = tracks.firstIndex(where: { $0.id == trackID }) else { return }
+            tracks[index].showSaveConfirmation = false
+            tracks[index].showSaveFailure = false
         }
     }
 

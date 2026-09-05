@@ -16,6 +16,8 @@ struct AudioTrack: Identifiable, Hashable {
     var analysisProgress: Double?
     var isSavingMetadata = false
     var saveProgress: Double?
+    var showSaveConfirmation = false
+    var showSaveFailure = false
     var hasManuallyAdjustedBPM = false
 
     init(
