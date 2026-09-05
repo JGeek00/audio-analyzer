@@ -9,19 +9,23 @@ struct MainWindowScene: Scene {
     }
 
     var body: some Scene {
-        Window("Audio Analyzer", id: "main") {
+        // WindowGroup: routing "Open with" to a Window(id:) destroys it while
+        // open; the group absorbs the extra instance, which dismisses itself.
+        WindowGroup("Audio Analyzer", id: "main") {
             WorkspaceView(model: model)
                 .frame(minWidth: 700, minHeight: 500)
                 .preferredColorScheme(selectedTheme.colorScheme)
+                .handlesExternalEvents(preferring: ["*"], allowing: ["*"])
                 .onOpenURL { url in
                     model.importTracks(from: [url])
                 }
+                .onAppear {
+                    AppDelegate.shared?.setWorkspace(model)
+                }
         }
-        .handlesExternalEvents(
-            matching: [
-                "public.mp3", "org.xiph.flac", "com.apple.m4a-audio",
-                "org.xiph.ogg-audio", "com.microsoft.waveform-audio"
-            ])
+        // ponytail: must match * so a cold open shows the window; UTIs never
+        // match file:// URLs.
+        .handlesExternalEvents(matching: ["*"])
         .defaultSize(width: 1_100, height: 700)
         .windowResizability(.contentMinSize)
         .commandsReplaced {

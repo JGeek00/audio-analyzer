@@ -3,6 +3,7 @@ import UniformTypeIdentifiers
 
 struct WorkspaceView: View {
     @Bindable var model: WorkspaceModel
+    @Environment(\.dismiss) private var dismiss
     @State private var isShowingImportError = false
     @State private var isShowingClearConfirmation = false
     @State private var isShowingClearSkippedNotice = false
@@ -119,6 +120,17 @@ struct WorkspaceView: View {
         .background {
             MainWindowAccessor(model: model)
                 .frame(width: 0, height: 0)
+        }
+        // The extra "Open with" instance dismisses itself.
+        .onAppear {
+            if model.registerWindow() {
+                DispatchQueue.main.async {
+                    dismiss()
+                }
+            }
+        }
+        .onDisappear {
+            model.unregisterWindow()
         }
         .fileImporter(
                 isPresented: $model.isImporting,

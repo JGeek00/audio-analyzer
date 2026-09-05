@@ -10,6 +10,19 @@ final class WorkspaceModel {
     var autoSaveErrorMessage: String?
     var unsupportedFormatMessage: String?
 
+    // Open windows: the extra "Open with" instance dismisses itself (shared list).
+    var openWindowCount = 0
+
+    /// Registers an appearing window; returns true for extras.
+    func registerWindow() -> Bool {
+        openWindowCount += 1
+        return openWindowCount > 1
+    }
+
+    func unregisterWindow() {
+        openWindowCount = max(0, openWindowCount - 1)
+    }
+
     private let analysisService = TrackAnalysisService()
 
     init() {

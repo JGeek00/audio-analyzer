@@ -74,7 +74,7 @@ architecture and third-party notices that ship with the source tree.
 ### Import and analysis
 
 ```text
-file picker / drag and drop
+file picker / drag and drop / Finder "Open with"
         ↓
 WorkspaceModel.importTracks(from:)
         ↓ validates audio URLs and removes duplicates
@@ -91,6 +91,16 @@ WorkspaceModel.importTracks(from:)
                 ↓
         WorkspaceModel → TrackListView / WaveformView
 ```
+
+Finder "Open with" arrives through two complementary paths because SwiftUI
+splits multi-file opens between them: `onOpenURL` (one URL at a time) and
+`AppDelegate.application(_:open:)` (the remainder, buffered while the window
+does not exist yet). Both call `importTracks(from:)`, whose path-based
+deduplication keeps repeated opens from creating duplicate tracks. The main
+scene is a `WindowGroup` so routing an open never destroys the visible
+window; any extra window instance dismisses itself and stays delegate-free
+(no close alerts, no accidental quit), and the app only terminates when the
+last real window closes.
 
 The workspace model is the coordinator for imported tracks, selection, status,
 manual BPM changes, and metadata saves. Views receive the resulting state and

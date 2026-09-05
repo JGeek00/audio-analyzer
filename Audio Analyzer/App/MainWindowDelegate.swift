@@ -21,6 +21,16 @@ final class MainWindowDelegate: NSObject, NSWindowDelegate {
     }
 
     func windowWillClose(_ notification: Notification) {
-        NSApplication.shared.terminate(nil)
+        // Quit only when no main window remains; an "Open with" extra may be
+        // closing. The closing window is still listed, so exclude it.
+        let closing = notification.object as? NSWindow
+        DispatchQueue.main.async {
+            let mains = NSApplication.shared.windows.filter {
+                $0 !== closing && $0.delegate is MainWindowDelegate
+            }
+            if mains.isEmpty {
+                NSApplication.shared.terminate(nil)
+            }
+        }
     }
 }

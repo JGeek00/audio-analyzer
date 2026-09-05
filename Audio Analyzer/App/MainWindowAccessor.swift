@@ -37,11 +37,25 @@ struct MainWindowAccessor: NSViewRepresentable {
                 return
             }
             guard attachedWindow !== window else { return }
+            attachedWindow = window
+
+            // Single main window: another valid instance means SwiftUI routed
+            // "Open with" here. Hide and close it delegate-free (no alerts,
+            // no quit); both share the model.
+            let otherMains = NSApplication.shared.windows.filter {
+                $0 !== window && $0.delegate is MainWindowDelegate
+            }
+            if !otherMains.isEmpty {
+                window.orderOut(nil)
+                DispatchQueue.main.async {
+                    window.close()
+                }
+                return
+            }
 
             let delegate = MainWindowDelegate(model: model)
             window.delegate = delegate
             self.delegate = delegate
-            attachedWindow = window
         }
     }
 }
