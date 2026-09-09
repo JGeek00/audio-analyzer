@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
     inputs:
       changelog:
-        description: 'Changelog de la release (Markdown)'
+        description: 'Release changelog (Markdown)'
         type: textarea
         required: true
 
