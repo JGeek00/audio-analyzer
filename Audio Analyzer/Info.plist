@@ -93,6 +93,14 @@
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>LSMultipleInstancesProhibited</key>
 	<true/>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUFeedURL</key>
+	<string>https://raw.githubusercontent.com/JGeek00/audio-analyzer/master/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>SThMEL4iTg7KpmJiwspfSXPx5qbbn7dO/t/ctC8+26Q=</string>
+	<key>SUScheduledCheckInterval</key>
+	<integer>86400</integer>
 	<key>NSHumanReadableCopyright</key>
 	<string></string>
 	<key>NSPrincipalClass</key>

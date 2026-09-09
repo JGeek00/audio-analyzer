@@ -1,11 +1,17 @@
 # Third-party notices
 
 The required QM-DSP and KissFFT subset is vendored under `Services/Analysis/Core/Vendor/qm-dsp`. It follows the implementations used by the upstream [Mixxx repository](https://github.com/mixxxdj/mixxx), including the tempo-tracking and `qm-keydetector:2` key-detection paths. Preserve the copyright notices and license texts included with the vendored source.
-
 - [Mixxx GPL v2 notice](https://github.com/mixxxdj/mixxx/blob/main/COPYING)
 - [Mixxx license](https://github.com/mixxxdj/mixxx/blob/main/LICENSE)
 - [QM-DSP GPL notice](https://github.com/mixxxdj/mixxx/blob/main/lib/qm-dsp/COPYING)
 - [KissFFT license](https://github.com/mixxxdj/mixxx/blob/main/lib/qm-dsp/ext/kissfft/COPYING)
+
+## Software updates
+
+Automatic updates use [Sparkle](https://sparkle-project.org) (MIT, GPL-compatible),
+integrated as a Swift Package binary dependency. The MIT license is
+GPL-compatible, so the project as a whole remains distributed under
+GPL-2.0-only (see the root `LICENSE.md`).
 
 ## ReplayGain analysis
 

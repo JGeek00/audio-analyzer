@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct PreferencesView: View {
+    @ObservedObject private var updater = UpdaterController.shared
     @AppStorage(AppStorageKeys.appTheme) private var theme = AppConfiguration.defaultTheme.rawValue
     @AppStorage(AppStorageKeys.waveformDimming) private var waveformDimming = AppConfiguration.defaultWaveformDimming.rawValue
     @AppStorage(AppStorageKeys.showBeatMarkers) private var showBeatMarkers = AppConfiguration.defaultShowBeatMarkers
@@ -154,6 +155,31 @@ struct PreferencesView: View {
                     Text("Standard tags keep Opus files consistent with the rest of the library; R128 tags follow the Opus spec.")
                 }
     
+                Section {
+                    Toggle(
+                        "Automatically check for updates",
+                        isOn: Binding(
+                            get: { updater.automaticallyChecksForUpdates },
+                            set: { updater.automaticallyChecksForUpdates = $0 }
+                        )
+                    )
+
+                    Toggle(
+                        "Automatically download updates",
+                        isOn: Binding(
+                            get: { updater.automaticallyDownloadsUpdates },
+                            set: { updater.automaticallyDownloadsUpdates = $0 }
+                        )
+                    )
+
+                    Button("Check for Updates Now") {
+                        updater.checkForUpdates()
+                    }
+                    .disabled(!updater.canCheckForUpdates)
+                } header: {
+                    Text("Software Update")
+                }
+
                 NavigationLink {
                 LicensesView()
             } label: {

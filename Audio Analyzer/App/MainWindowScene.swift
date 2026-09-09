@@ -36,5 +36,10 @@ struct MainWindowScene: Scene {
                 .keyboardShortcut("o", modifiers: [.command])
             }
         }
+        .commands {
+            CommandGroup(before: .appSettings) {
+                CheckForUpdatesView()
+            }
+        }
     }
 }

@@ -143,8 +143,9 @@ in Vorbis comments (FLAC, OGG, and Opus).
 - Prefer the existing concrete types and services. Do not add a protocol,
   factory, coordinator, or dependency for a single implementation without a
   demonstrated need.
-- Prefer native Swift, SwiftUI, AppKit, and AVFoundation APIs. The project has
-  no third-party Swift package dependency.
+- Prefer native Swift, SwiftUI, AppKit, and AVFoundation APIs. Third-party
+  Swift packages are limited to Sparkle (automatic updates) and
+  swift-markdown-ui (license rendering).
 
 ### Swift style
 

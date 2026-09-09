@@ -1,0 +1,136 @@
+# Manual production release: build, notarize, DMG, appcast, GitHub Release.
+#
+# How to publish: bump MARKETING_VERSION in Xcode, push to master,
+# then Run workflow and paste the changelog (Markdown).
+# The workflow commits appcast.xml as "X.X.X", tags that commit "vX.X.X",
+# and creates the Release from the tag with the DMG attached.
+#
+# Required repository secrets:
+#   APPLE_CERT_P12_B64, APPLE_CERT_PASSWORD   (Developer ID Application cert)
+#   APPLE_ID, APPLE_APP_PASSWORD              (notarization)
+#   SPARKLE_ED_PRIVATE_KEY                    (EdDSA private key for Sparkle)
+
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      changelog:
+        description: 'Changelog de la release (Markdown)'
+        type: textarea
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  PROJECT: Audio Analyzer.xcodeproj
+  SCHEME: Audio Analyzer
+  SPARKLE_VERSION: 2.9.6
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/master'
+    runs-on: macos-26
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve and validate version
+        id: version
+        run: |
+          eval $(python3 scripts/prepare-release.py)
+          echo "next_version=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
+          echo "next_build=$NEXT_BUILD" >> "$GITHUB_OUTPUT"
+          echo "Releasing $NEXT_VERSION (build $NEXT_BUILD)"
+
+      - name: Import signing certificate
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.APPLE_CERT_P12_B64 }}
+          p12-password: ${{ secrets.APPLE_CERT_PASSWORD }}
+
+      - name: Fetch Sparkle tools
+        run: |
+          curl -sL -o /tmp/sparkle.tar.xz \
+            "https://github.com/sparkle-project/Sparkle/releases/download/${{ env.SPARKLE_VERSION }}/Sparkle-${{ env.SPARKLE_VERSION }}.tar.xz"
+          mkdir -p /tmp/sparkle-tools && tar -xf /tmp/sparkle.tar.xz -C /tmp/sparkle-tools
+          printf '%s' "${{ secrets.SPARKLE_ED_PRIVATE_KEY }}" > /tmp/sparkle.key
+          chmod 600 /tmp/sparkle.key
+
+      - name: Archive
+        run: |
+          xcodebuild archive \
+            -project "$PROJECT" -scheme "$SCHEME" -configuration Release \
+            -archivePath build/AudioAnalyzer.xcarchive \
+            MARKETING_VERSION='${{ steps.version.outputs.next_version }}' \
+            CURRENT_PROJECT_VERSION='${{ steps.version.outputs.next_build }}' \
+            CODE_SIGN_STYLE=Automatic \
+            DEVELOPMENT_TEAM=38Z3B9TJTR \
+            CODE_SIGN_IDENTITY='Developer ID Application'
+
+      - name: Export notarized app
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath build/AudioAnalyzer.xcarchive \
+            -exportPath build/export \
+            -exportOptionsPlist scripts/ExportOptions.plist
+          xcrun notarytool submit 'build/export/Audio Analyzer.app' \
+            --apple-id '${{ secrets.APPLE_ID }}' \
+            --password '${{ secrets.APPLE_APP_PASSWORD }}' \
+            --team-id 38Z3B9TJTR --wait
+          xcrun stapler staple 'build/export/Audio Analyzer.app'
+          codesign --verify --deep --strict 'build/export/Audio Analyzer.app'
+
+      - name: Build and notarize DMG
+        run: |
+          DMG="dist/AudioAnalyzer-${{ steps.version.outputs.next_version }}.dmg"
+          DMG_APP_PATH='build/export/Audio Analyzer.app' scripts/make-dmg.sh \
+            'build/export/Audio Analyzer.app' "$DMG"
+          xcrun notarytool submit "$DMG" \
+            --apple-id '${{ secrets.APPLE_ID }}' \
+            --password '${{ secrets.APPLE_APP_PASSWORD }}' \
+            --team-id 38Z3B9TJTR --wait
+          xcrun stapler staple "$DMG"
+          echo "dmg=$DMG" >> "$GITHUB_ENV"
+
+      - name: Render changelog to HTML
+        env:
+          CHANGELOG_MD: ${{ inputs.changelog }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          printf '%s' "$CHANGELOG_MD" > /tmp/changelog.md
+          gh api markdown -f text="$(cat /tmp/changelog.md)" --jq . > /tmp/changelog.html
+
+      - name: Update appcast
+        run: |
+          python3 scripts/update-appcast.py \
+            --dmg '${{ env.dmg }}' \
+            --version '${{ steps.version.outputs.next_version }}' \
+            --build '${{ steps.version.outputs.next_build }}' \
+            --notes-html /tmp/changelog.html \
+            --url 'https://github.com/JGeek00/audio-analyzer/releases/download/v${{ steps.version.outputs.next_version }}/AudioAnalyzer-${{ steps.version.outputs.next_version }}.dmg' \
+            --appcast appcast.xml \
+            --sign-update /tmp/sparkle-tools/bin/sign_update \
+            --key-file /tmp/sparkle.key
+
+      - name: Commit, tag and release
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add appcast.xml
+          git commit -m '${{ steps.version.outputs.next_version }}'
+          git tag 'v${{ steps.version.outputs.next_version }}'
+          git push origin HEAD:master 'v${{ steps.version.outputs.next_version }}'
+          gh release create 'v${{ steps.version.outputs.next_version }}' \
+            '${{ env.dmg }}' \
+            --title 'v${{ steps.version.outputs.next_version }}' \
+            --notes-file /tmp/changelog.md
+        env:
+          GH_TOKEN: ${{ github.token }}
