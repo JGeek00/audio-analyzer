@@ -113,7 +113,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           printf '%s' "$CHANGELOG_MD" > /tmp/changelog.md
-          gh api markdown -f text="$(cat /tmp/changelog.md)" --jq . > /tmp/changelog.html
+          gh api markdown -f text="$(cat /tmp/changelog.md)" > /tmp/changelog.html
 
       - name: Update appcast
         run: |
