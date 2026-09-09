@@ -56,34 +56,10 @@ jobs:
           p12-file-base64: ${{ secrets.APPLE_CERT_P12_B64 }}
           p12-password: ${{ secrets.APPLE_CERT_PASSWORD }}
 
-      - name: Diagnose uploaded P12 (names and dates only, never fails)
-        env:
-          P12_B64: ${{ secrets.APPLE_CERT_P12_B64 }}
-          P12_PASS: ${{ secrets.APPLE_CERT_PASSWORD }}
-        run: |
-          printf '%s' "$P12_B64" | base64 -d > /tmp/diag.p12
-          echo "p12 bytes: $(wc -c < /tmp/diag.p12)"
-          if openssl pkcs12 -legacy -in /tmp/diag.p12 -passin env:P12_PASS -info -noout; then
-            echo "DIAG: password unlocks the uploaded p12"
-          else
-            echo "DIAG: password does NOT unlock the uploaded p12 (wrong APPLE_CERT_PASSWORD or corrupt APPLE_CERT_P12_B64)" >&2
-          fi
-          openssl pkcs12 -legacy -in /tmp/diag.p12 -passin env:P12_PASS -nokeys 2>/dev/null | openssl x509 -noout -subject -enddate 2>/dev/null || echo "DIAG: could not read certificate subject" >&2
-          echo "DIAG private keys: $(openssl pkcs12 -legacy -in /tmp/diag.p12 -passin env:P12_PASS -nocerts -nodes 2>/dev/null | grep -c 'PRIVATE KEY')"
-          rm -P /tmp/diag.p12
-          exit 0
-
       - name: Verify signing identity
         run: |
-          security list-keychains
-          security find-identity -v -p codesigning | tee /tmp/identities.txt
-          if grep -q 'Developer ID Application' /tmp/identities.txt; then
-            exit 0
-          fi
-          echo "error: no 'Developer ID Application' certificate in keychain; check APPLE_CERT_P12_B64 / APPLE_CERT_PASSWORD secrets" >&2
-          echo "--- Apple certificates present (type check, names only) ---" >&2
-          security find-certificate -a | grep -i '"labl"' >&2 || true
-          exit 1
+          security find-identity -v -p codesigning | grep -q 'Developer ID Application' \
+            || { echo "error: no 'Developer ID Application' certificate in keychain; check APPLE_CERT_P12_B64 / APPLE_CERT_PASSWORD secrets" >&2; exit 1; }
 
       - name: Fetch Sparkle tools
         run: |
@@ -95,7 +71,7 @@ jobs:
 
       - name: Archive
         run: |
-          xcodebuild archive \
+          xcodebuild archive -quiet \
             -project "$PROJECT" -scheme "$SCHEME" -configuration Release \
             -archivePath build/AudioAnalyzer.xcarchive \
             MARKETING_VERSION='${{ steps.version.outputs.next_version }}' \
@@ -106,14 +82,16 @@ jobs:
 
       - name: Export notarized app
         run: |
-          xcodebuild -exportArchive \
+          xcodebuild -exportArchive -quiet \
             -archivePath build/AudioAnalyzer.xcarchive \
             -exportPath build/export \
             -exportOptionsPlist scripts/ExportOptions.plist
-          xcrun notarytool submit 'build/export/Audio Analyzer.app' \
+          ditto -c -k --keepParent 'build/export/Audio Analyzer.app' /tmp/AudioAnalyzer.zip
+          xcrun notarytool submit /tmp/AudioAnalyzer.zip \
             --apple-id '${{ secrets.APPLE_ID }}' \
             --password '${{ secrets.APPLE_APP_PASSWORD }}' \
             --team-id 38Z3B9TJTR --wait
+          rm /tmp/AudioAnalyzer.zip
           xcrun stapler staple 'build/export/Audio Analyzer.app'
           codesign --verify --deep --strict 'build/export/Audio Analyzer.app'
 
