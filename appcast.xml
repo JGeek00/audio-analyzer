@@ -1,9 +1,39 @@
-<?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><!-- sparkle-sign-warning:
+IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires re-signing this file with generate_appcast or sign_update! The signed signature will be embedded at the end of this file.
+--><rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  
+  
   <channel>
+    
+    
     <title>Audio Analyzer Updates</title>
+    
+    
     <link>https://github.com/JGeek00/audio-analyzer/releases</link>
+    
+    
     <description>Audio Analyzer for macOS</description>
+    
+    
     <language>en</language>
+    
+  
+    <item>
+      <title>Version 1.1.0</title>
+      <sparkle:version>4</sparkle:version>
+      <sparkle:shortVersionString>1.1.0</sparkle:shortVersionString>
+      <pubDate>Wed, 09 Sep 2026 21:11:12 GMT</pubDate>
+      <description><![CDATA[<ul>
+<li>Added app updater</li>
+</ul>
+]]></description>
+      <enclosure url="https://github.com/JGeek00/audio-analyzer/releases/download/v1.1.0/AudioAnalyzer-1.1.0.dmg" length="4719794" type="application/octet-stream" sparkle:version="4" sparkle:shortVersionString="1.1.0" sparkle:edSignature="zwcVFPUHqr42FShHzVHdJKV6E9nLln9tKHwbRxD7gIWR5n6fqFzZ8vjyAFb2sAJs7D9V5/UK+duPi4ztqAD8Bg=="></enclosure>
+      <link>https://github.com/JGeek00/audio-analyzer/releases/tag/v1.1.0</link>
+    </item>
   </channel>
-</rss>
+  
+
+</rss><!-- sparkle-signatures:
+edSignature: kyASj3ipEIDvT4s9fMEZt90x+9oS8fL6aqx8rT/rIxBuNX77pMqvsrAgJO0yq4cFUVz3q017sZITGmeHVSmxDA==
+length: 1438
+-->
