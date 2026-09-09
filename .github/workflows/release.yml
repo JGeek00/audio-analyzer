@@ -56,6 +56,12 @@ jobs:
           p12-file-base64: ${{ secrets.APPLE_CERT_P12_B64 }}
           p12-password: ${{ secrets.APPLE_CERT_PASSWORD }}
 
+      - name: Verify signing identity
+        run: |
+          security find-identity -v -p codesigning | tee /tmp/identities.txt
+          grep -q 'Developer ID Application' /tmp/identities.txt \
+            || { echo "error: no 'Developer ID Application' certificate in keychain; check APPLE_CERT_P12_B64 / APPLE_CERT_PASSWORD secrets" >&2; exit 1; }
+
       - name: Fetch Sparkle tools
         run: |
           curl -sL -o /tmp/sparkle.tar.xz \
@@ -71,7 +77,7 @@ jobs:
             -archivePath build/AudioAnalyzer.xcarchive \
             MARKETING_VERSION='${{ steps.version.outputs.next_version }}' \
             CURRENT_PROJECT_VERSION='${{ steps.version.outputs.next_build }}' \
-            CODE_SIGN_STYLE=Automatic \
+            CODE_SIGN_STYLE=Manual \
             DEVELOPMENT_TEAM=38Z3B9TJTR \
             CODE_SIGN_IDENTITY='Developer ID Application'
 

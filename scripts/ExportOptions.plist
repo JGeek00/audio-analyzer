@@ -4,8 +4,10 @@
 <dict>
 	<key>method</key>
 	<string>developer-id</string>
+	<key>signingCertificate</key>
+	<string>Developer ID Application</string>
 	<key>signingStyle</key>
-	<string>automatic</string>
+	<string>manual</string>
 	<key>teamID</key>
 	<string>38Z3B9TJTR</string>
 </dict>
